@@ -11,8 +11,8 @@ const Dashboard = (() => {
   /* ---------------------------------------------------------------------
    * Stat cards
    * ------------------------------------------------------------------- */
-  function statCard({ label, value, icon, foot, trend, trendUp }) {
-    return `<div class="card stat-card">
+  function statCard({ label, value, icon, accent = 'neutral', pill, pillTone, foot }) {
+    return `<div class="card stat-card" data-accent="${accent}">
       <div class="card-content">
         <div class="stat-top">
           <div>
@@ -23,13 +23,11 @@ const Dashboard = (() => {
         </div>
         <div class="stat-foot">
           ${
-            trend
-              ? `<span class="trend ${trendUp ? 'up' : 'down'}">
-                   ${window.Icon(trendUp ? 'trending-up' : 'trending-down')}${Utils.escape(trend)}
-                 </span>`
+            pill
+              ? `<span class="stat-pill ${pillTone || ''}"><span class="dot"></span>${Utils.escape(pill)}</span>`
               : ''
           }
-          <span>${Utils.escape(foot || '')}</span>
+          ${foot ? `<span class="stat-foot-text">${Utils.escape(foot)}</span>` : ''}
         </div>
       </div>
     </div>`;
@@ -44,65 +42,68 @@ const Dashboard = (() => {
         label: 'Total Doctors',
         value: Utils.number(stats.total_doctors),
         icon: 'stethoscope',
-        foot: `${stats.active_doctors} active · ${stats.new_doctors_this_month} new this month`,
-        trend: `${stats.active_doctors} active`,
-        trendUp: true,
+        accent: 'azure',
+        pill: `${Utils.number(stats.active_doctors)} active`,
+        pillTone: 'up',
+        foot: `Across ${Utils.number(stats.total_cities)} cities`,
       }),
       statCard({
         label: 'Total Patients',
         value: Utils.number(stats.total_patients),
         icon: 'users',
+        accent: 'violet',
+        pill: `${stats.avg_rating} avg rating`,
         foot: 'Registered in the clinic',
-        trend: `${stats.avg_rating} avg rating`,
-        trendUp: true,
       }),
       statCard({
         label: "Today's Appointments",
         value: Utils.number(stats.today_appointments),
         icon: 'calendar-days',
-        foot: `${stats.pending_appointments} pending · ${stats.cancelled_appointments} cancelled`,
-        trend: `${stats.completed_appointments} completed`,
-        trendUp: true,
+        accent: 'green',
+        pill: `${Utils.number(stats.completed_appointments)} completed`,
+        pillTone: 'up',
+        foot: `${Utils.number(stats.pending_appointments)} pending · ${Utils.number(stats.cancelled_appointments)} cancelled`,
       }),
       statCard({
         label: 'Total Revenue',
         value: Utils.money(stats.total_revenue, { compact: true }),
         icon: 'circle-dollar-sign',
+        accent: 'neutral',
+        pill: `${Utils.number(stats.total_appointments)} appointments`,
         foot: stats.top_specialty ? `Top: ${stats.top_specialty}` : 'All time earnings',
-        trend: `${Utils.number(stats.total_appointments)} appointments`,
-        trendUp: true,
       }),
       statCard({
         label: 'Hospitals',
         value: Utils.number(stats.total_hospitals),
         icon: 'building',
-        foot: 'Directory from the backup',
-        trend: `In ${Utils.number(stats.total_cities)} cities`,
-        trendUp: true,
+        accent: 'amber',
+        pill: 'Directory',
+        foot: 'Imported from the backup',
       }),
       statCard({
         label: 'Duty Slots',
         value: Utils.number(stats.total_duty_slots),
         icon: 'calendar-check',
-        foot: 'OPD/OT schedule of hospitals',
-        trend: 'The slots patients book',
-        trendUp: true,
+        accent: 'violet',
+        pill: 'OPD / OT',
+        foot: 'Hospital weekly schedule',
       }),
       statCard({
         label: 'App Users',
         value: Utils.number(stats.total_app_users),
         icon: 'smartphone',
-        foot: `${stats.registered_app_users} registered · rest push tokens`,
-        trend: 'Mobile app audience',
-        trendUp: true,
+        accent: 'azure',
+        pill: `${Utils.number(stats.registered_app_users)} registered`,
+        pillTone: 'up',
+        foot: 'Rest are push tokens',
       }),
       statCard({
         label: 'Notifications',
         value: Utils.number(stats.total_notifications),
         icon: 'bell',
-        foot: 'Push messages shown in the app',
-        trend: 'From the backup',
-        trendUp: true,
+        accent: 'rose',
+        pill: `${Utils.number(stats.total_backup_promos)} promos`,
+        foot: 'Alerts on the mobile app',
       }),
     ];
 
