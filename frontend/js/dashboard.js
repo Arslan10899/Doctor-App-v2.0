@@ -11,7 +11,13 @@ const Dashboard = (() => {
   /* ---------------------------------------------------------------------
    * Stat cards
    * ------------------------------------------------------------------- */
-  function statCard({ label, value, icon, accent = 'neutral', pill, pillTone, foot }) {
+  function statCard({ label, value, icon, accent = 'neutral', pill, pillTone, foot, href }) {
+    const iconChip = href
+      ? `<a class="stat-icon-link" href="${href}" title="Open ${Utils.escape(label)}" aria-label="Open ${Utils.escape(label)}">
+          <span class="stat-icon">${window.Icon(icon)}</span>
+        </a>`
+      : `<div class="stat-icon">${window.Icon(icon)}</div>`;
+
     return `<div class="card stat-card" data-accent="${accent}">
       <div class="card-content">
         <div class="stat-top">
@@ -19,7 +25,7 @@ const Dashboard = (() => {
             <div class="stat-label">${Utils.escape(label)}</div>
             <div class="stat-value">${value}</div>
           </div>
-          <div class="stat-icon">${window.Icon(icon)}</div>
+          ${iconChip}
         </div>
         <div class="stat-foot">
           ${
@@ -45,6 +51,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_doctors),
         icon: 'stethoscope',
         accent: 'azure',
+        href: 'doctors.html?v=24',
         pill: `${Utils.number(stats.active_doctors)} active`,
         pillTone: 'up',
         foot: `~${formatBytes(tablesIn.doctors || 0)} in database · ${Utils.number(stats.total_cities)} cities`,
@@ -54,6 +61,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_patients),
         icon: 'users',
         accent: 'violet',
+        href: 'patients.html?v=24',
         pill: `${stats.avg_rating} avg rating`,
         foot: 'Registered in the clinic',
       }),
@@ -62,6 +70,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.today_appointments),
         icon: 'calendar-days',
         accent: 'green',
+        href: 'appointments.html?v=24',
         pill: `${Utils.number(stats.completed_appointments)} completed`,
         pillTone: 'up',
         foot: `${Utils.number(stats.pending_appointments)} pending · ${Utils.number(stats.cancelled_appointments)} cancelled`,
@@ -71,6 +80,7 @@ const Dashboard = (() => {
         value: Utils.money(stats.total_revenue, { compact: true }),
         icon: 'circle-dollar-sign',
         accent: 'neutral',
+        href: 'payments.html?v=24',
         pill: `${Utils.number(stats.total_appointments)} appointments`,
         foot: stats.top_specialty ? `Top: ${stats.top_specialty}` : 'All time earnings',
       }),
@@ -79,6 +89,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_hospitals),
         icon: 'building',
         accent: 'amber',
+        href: 'hospitals.html?v=24',
         pill: 'Directory',
         foot: 'Imported from the backup',
       }),
@@ -87,6 +98,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_duty_slots),
         icon: 'calendar-check',
         accent: 'violet',
+        href: 'appointments.html?v=24',
         pill: 'OPD / OT',
         foot: 'Hospital weekly schedule',
       }),
@@ -95,6 +107,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_app_users),
         icon: 'smartphone',
         accent: 'azure',
+        href: 'app-users.html?v=24',
         pill: `${Utils.number(stats.registered_app_users)} registered`,
         pillTone: 'up',
         foot: 'Rest are push tokens',
@@ -104,6 +117,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_notifications),
         icon: 'bell',
         accent: 'rose',
+        href: 'notifications.html?v=24',
         pill: `${Utils.number(stats.total_backup_promos)} promos`,
         foot: 'Alerts on the mobile app',
       }),

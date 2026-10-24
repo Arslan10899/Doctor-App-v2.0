@@ -827,6 +827,28 @@
   stroke-width: 2.25;
 }
 
+/* clickable tile icon -> section link */
+.stat-icon-link {
+  border-radius: var(--radius-lg);
+  outline-offset: 3px;
+}
+
+.stat-icon-link:hover .stat-icon {
+  background-color: color-mix(in oklab, var(--stat-accent) 22%, transparent);
+  transform: translateY(-1px) scale(1.04);
+  color: var(--stat-accent);
+  box-shadow: 0 4px 14px -6px color-mix(in oklab, var(--stat-accent) 55%, transparent);
+}
+
+.stat-icon-link .stat-icon {
+  transition: background-color 0.15s ease, transform 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-icon-link:focus-visible {
+  outline: 2px solid var(--ring);
+}
+
 .stat-value {
   font-size: 1.625rem;
   font-weight: 700;

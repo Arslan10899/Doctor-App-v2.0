@@ -36,7 +36,7 @@ const Auth = (() => {
       Api.setUser(data.user);
       toast(`Welcome back, ${data.user.name || 'Admin'}!`, 'success');
       setTimeout(() => {
-        window.location.href = 'index.html?v=23';
+        window.location.href = 'index.html?v=24';
       }, 450);
     } catch (err) {
       showError(err.message || 'Invalid email or password.');
@@ -77,7 +77,7 @@ const Auth = (() => {
     if (Api.getToken()) {
       Api.me()
         .then(() => {
-          window.location.replace('index.html?v=23');
+          window.location.replace('index.html?v=24');
         })
         .catch(() => Api.setToken(''));
     }

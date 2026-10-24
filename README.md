@@ -428,6 +428,7 @@ page verifies the token on load, so the dashboard never opens before sign-in.
 | `GET` | `/api/opd-specialties` | OPD specialty groups exactly as the app shows them (29, English + Urdu) |
 | `GET` | `/api/hospitals` | Distinct hospital names (for the filter dropdown) |
 | `GET` | `/api/patients?limit=100` | Patient list |
+| `GET` | `/api/payments?status=…&search=…&limit=…` | Revenue records per payment (doctor, amount, method, status, notes) |
 | `GET` | `/api/appointments` | Appointments, filter by `status` / `doctor_id` |
 | `POST` | `/api/appointments` | Book an appointment |
 

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patients · Doctor Application</title>
+  <meta name="description" content="Patient directory – names, contact details and medical basics imported from the backup." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=23" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=23" />
+
+  <link rel="stylesheet" href="css/theme.css?v=24" />
+  <link rel="stylesheet" href="css/layout.css?v=24" />
+  <link rel="stylesheet" href="css/components.css?v=24" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <!-- Page heading -->
+              <div class="page-head">
+                <div>
+                  <h1>Patients</h1>
+                  <p>Patient records of the clinic – contact details and medical basics. New patients appear as appointments are created.</p>
+                </div>
+                <a href="appointments.html?v=24" class="btn btn-outline">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+                  Duty schedule
+                </a>
+              </div>
+
+              <!-- Summary chips -->
+              <div class="grid grid-4" id="patientStats"></div>
+
+              <!-- Table card -->
+              <section class="card">
+                <div class="table-toolbar">
+                  <div class="table-toolbar-left">
+                    <div class="input-icon">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                      <input class="input" type="search" id="patientSearch" placeholder="Search name, email, phone, city…" style="min-width:16rem;" />
+                    </div>
+                    <select class="select" id="genderFilter" aria-label="Filter by gender" style="width:auto;">
+                      <option value="all">All genders</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                  </div>
+                  <div class="table-toolbar-right">
+                    <span class="text-sm text-muted" id="resultsInfo">Loading…</span>
+                  </div>
+                </div>
+
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Patient</th>
+                        <th>Contact</th>
+                        <th>City</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Blood group</th>
+                      </tr>
+                    </thead>
+                    <tbody id="patientTableBody"></tbody>
+                  </table>
+                  <div class="editor-empty hidden" id="patientsEmpty">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                    <span>No patient matches this filter.</span>
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script src="js/icons.js?v=24"></script>
+  <script src="js/utils.js?v=24"></script>
+  <script src="js/api.js?v=24"></script>
+  <script src="js/theme.js?v=24"></script>
+  <script src="js/layout.js?v=24"></script>
+  <script src="js/patients.js?v=24"></script>
+</body>
+</html>

@@ -1421,6 +1421,38 @@ def list_patients(
     return rows
 
 
+@app.get("/api/payments")
+def list_payments(
+    status: Optional[str] = Query(default=None),
+    search: Optional[str] = Query(default=None),
+    limit: int = Query(default=200, ge=1, le=1000),
+    user: dict[str, Any] = Depends(current_user),
+) -> list[dict[str, Any]]:
+    """Revenue records – one row per payment, with the doctor it was booked against."""
+    sql = """
+        SELECT p.id, p.amount, p.method, p.status, p.paid_at, p.notes,
+               d.name AS doctor_name, d.specialty
+        FROM payments p
+        LEFT JOIN doctors d ON d.id = p.doctor_id
+        WHERE 1 = 1
+    """
+    params: list[Any] = []
+    if status and status.lower() != "all":
+        sql += " AND p.status = ?"
+        params.append(status)
+    if search:
+        sql += " AND (p.notes LIKE ? OR d.name LIKE ? OR p.method LIKE ?)"
+        like = f"%{search}%"
+        params.extend([like, like, like])
+    sql += " ORDER BY p.paid_at DESC, p.id DESC LIMIT ?"
+    params.append(limit)
+    rows = db.query_all(sql, params)
+    for row in rows:
+        row["id"] = int(row["id"])
+        row["amount"] = float(row["amount"] or 0)
+    return rows
+
+
 @app.get("/api/appointments")
 def list_appointments(
     limit: int = Query(default=100, ge=1, le=500),

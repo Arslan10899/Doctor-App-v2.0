@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payments · Doctor Application</title>
+  <meta name="description" content="Revenue records – consultation fees collected per doctor, with method and status." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=23" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=23" />
+
+  <link rel="stylesheet" href="css/theme.css?v=24" />
+  <link rel="stylesheet" href="css/layout.css?v=24" />
+  <link rel="stylesheet" href="css/components.css?v=24" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <!-- Page heading -->
+              <div class="page-head">
+                <div>
+                  <h1>Payments</h1>
+                  <p>Consultation fees collected in the clinic – payment method, status and the doctor each payment belongs to.</p>
+                </div>
+              </div>
+
+              <!-- Summary chips -->
+              <div class="grid grid-4" id="paymentStats"></div>
+
+              <!-- Table card -->
+              <section class="card">
+                <div class="table-toolbar">
+                  <div class="table-toolbar-left">
+                    <div class="input-icon">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                      <input class="input" type="search" id="paymentSearch" placeholder="Search doctor, method, notes…" style="min-width:16rem;" />
+                    </div>
+                    <select class="select" id="statusFilter" aria-label="Filter by status" style="width:auto;">
+                      <option value="all">All statuses</option>
+                      <option value="Paid">Paid</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Refunded">Refunded</option>
+                    </select>
+                  </div>
+                  <div class="table-toolbar-right">
+                    <span class="text-sm text-muted" id="resultsInfo">Loading…</span>
+                  </div>
+                </div>
+
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Doctor</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Paid at</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody id="paymentTableBody"></tbody>
+                  </table>
+                  <div class="editor-empty hidden" id="paymentsEmpty">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                    <span>No payment matches this filter.</span>
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script src="js/icons.js?v=24"></script>
+  <script src="js/utils.js?v=24"></script>
+  <script src="js/api.js?v=24"></script>
+  <script src="js/theme.js?v=24"></script>
+  <script src="js/layout.js?v=24"></script>
+  <script src="js/payments.js?v=24"></script>
+</body>
+</html>

@@ -145,7 +145,7 @@ const Api = (() => {
     setUser(null);
     const page = window.location.pathname.split('/').pop();
     /* Version query (?v=2) is not part of the pathname. */
-    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=23');
+    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=24');
   }
 
   return {
@@ -210,6 +210,7 @@ const Api = (() => {
     myAds: () => request('/my-ads'),
     backupPromos: () => request('/backup-promos'),
     patients: (limit = 200) => request('/patients', { params: { limit } }),
+    payments: (params = {}) => request('/payments', { params }),
     appointments: (params = {}) => request('/appointments', { params }),
   };
 })();
