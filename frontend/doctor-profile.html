@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Profile · Doctor Application</title>
+  <meta name="description" content="Full doctor profile – details, clinics, OPD/OT schedule, diseases and more." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=19" />
+  <link rel="stylesheet" href="css/layout.css?v=19" />
+  <link rel="stylesheet" href="css/components.css?v=19" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <!-- Page heading -->
+              <div class="page-head">
+                <div>
+                  <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+                    <a href="doctors.html?v=19" class="btn btn-outline btn-sm">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                      Back to Doctors
+                    </a>
+                    <span class="text-sm text-muted">Doctor Full Profile</span>
+                  </div>
+                  <h1 id="profileName" style="margin-top:.625rem;">Loading…</h1>
+                  <p id="profileSub" class="text-sm text-muted" style="margin-top:.25rem;">Please wait while we load the profile.</p>
+                </div>
+                <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                  <button type="button" class="btn btn-outline" id="refreshProfile">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                    Refresh
+                  </button>
+                  <a href="doctor-edit.html?v=19" class="btn btn-primary" id="editProfile">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                    Edit doctor
+                  </a>
+                  <a href="doctors.html?v=19" class="btn btn-outline">All Doctors</a>
+                </div>
+              </div>
+
+              <div id="profileError" class="empty-state" style="display:none;">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                <strong>Unable to load doctor profile</strong>
+                <p id="profileErrorMsg" class="text-sm text-muted">Please try again.</p>
+                <a href="doctors.html?v=19" class="btn btn-outline" style="margin-top:.75rem;">Back to Doctors</a>
+              </div>
+
+              <div id="profileContent" style="display:flex;flex-direction:column;gap:1rem;">
+                <!-- Header Card -->
+                <section class="card">
+                  <div class="card-header">
+                    <div style="display:flex;align-items:center;gap:1rem;min-width:0;flex-wrap:wrap;">
+                      <div id="profileAvatar"></div>
+                      <div style="min-width:0;">
+                        <div class="card-title" style="font-size:1.125rem;" id="profileCardName">—</div>
+                        <div class="card-description" id="profileCardMeta">—</div>
+                        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.5rem;">
+                          <div id="profileStatus"></div>
+                          <span class="badge" id="sehatBadge" style="display:none;">Sehat Card Empaneled</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-action" style="display:flex;flex-direction:column;align-items:flex-end;gap:.25rem;">
+                      <div class="text-sm text-muted">Consultation Fee</div>
+                      <div style="font-size:1.25rem;font-weight:600;" id="profileFee">—</div>
+                    </div>
+                  </div>
+                  <div class="card-content">
+                    <div class="grid grid-4" id="profileQuickStats"></div>
+                  </div>
+                </section>
+
+                <!-- Main Grid -->
+                <section class="grid grid-12">
+                  <div class="col-8" style="display:flex;flex-direction:column;gap:1rem;">
+                    <div class="card">
+                      <div class="card-header">
+                        <div>
+                          <div class="card-title">Personal &amp; Professional Details</div>
+                          <div class="card-description">Complete details from backup records</div>
+                        </div>
+                      </div>
+                      <div class="card-content">
+                        <div class="grid grid-2" id="profileDetailsGrid"></div>
+                      </div>
+                    </div>
+
+                    <div class="card" id="bioCard" style="display:none;">
+                      <div class="card-header">
+                        <div>
+                          <div class="card-title">Doctor Message / About</div>
+                          <div class="card-description">Notes shown to patients</div>
+                        </div>
+                      </div>
+                      <div class="card-content">
+                        <p class="text-sm" id="profileBio" style="line-height:1.8;white-space:pre-wrap;"></p>
+                      </div>
+                    </div>
+
+                    <div class="card" id="diseasesCard" style="display:none;">
+                      <div class="card-header">
+                        <div>
+                          <div class="card-title">Diseases Treated</div>
+                          <div class="card-description">Conditions &amp; procedures</div>
+                        </div>
+                      </div>
+                      <div class="card-content">
+                        <p class="text-sm" id="profileDiseases" style="line-height:1.8;white-space:pre-wrap;"></p>
+                      </div>
+                    </div>
+
+                    <div class="card" id="otCard" style="display:none;">
+                      <div class="card-header">
+                        <div>
+                          <div class="card-title">OT Schedule</div>
+                          <div class="card-description">Operation theatre timings</div>
+                        </div>
+                      </div>
+                      <div class="card-content">
+                        <div id="profileOt"></div>
+                      </div>
+                    </div>
+
+                    <div class="card" id="opdCard" style="display:none;">
+                      <div class="card-header">
+                        <div>
+                          <div class="card-title">OPD Information</div>
+                          <div class="card-description">Out-patient department schedule</div>
+                        </div>
+                      </div>
+                      <div class="card-content">
+                        <div id="profileOpd"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-4" style="display:flex;flex-direction:column;gap:1rem;">
+                    <div class="card">
+                      <div class="card-header">
+                        <div>
+                          <div class="card-title">Clinics &amp; Location</div>
+                          <div class="card-description">Practice locations</div>
+                        </div>
+                      </div>
+                      <div class="card-content" style="display:flex;flex-direction:column;gap:.875rem;">
+                        <div id="profileClinic"></div>
+                        <div id="profileLocation"></div>
+                      </div>
+                    </div>
+
+                    <div class="card" id="timingsCard" style="display:none;">
+                      <div class="card-header">
+                        <div>
+                          <div class="card-title">Clinic Timings</div>
+                          <div class="card-description">Weekly schedule</div>
+                        </div>
+                      </div>
+                      <div class="card-content" style="display:flex;flex-direction:column;gap:.5rem;">
+                        <div id="profileTimings"></div>
+                      </div>
+                    </div>
+
+                    <div class="card">
+                      <div class="card-header">
+                        <div>
+                          <div class="card-title">Contact</div>
+                          <div class="card-description">Get in touch</div>
+                        </div>
+                      </div>
+                      <div class="card-content" style="display:flex;flex-direction:column;gap:.625rem;">
+                        <div id="profileContact"></div>
+                      </div>
+                    </div>
+
+                    <div class="card">
+                      <div class="card-header">
+                        <div>
+                          <div class="card-title">Stats &amp; Meta</div>
+                          <div class="card-description">Record information</div>
+                        </div>
+                      </div>
+                      <div class="card-content" style="display:flex;flex-direction:column;gap:.5rem;">
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm text-muted">Doctor ID</span>
+                          <span class="text-sm" id="profileId">—</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm text-muted">Views</span>
+                          <span class="text-sm" id="profileViews">—</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm text-muted">Total Calls</span>
+                          <span class="text-sm" id="profileCalls">—</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm text-muted">OPD</span>
+                          <span class="text-sm" id="profileOpdFlag">—</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm text-muted">Added On</span>
+                          <span class="text-sm" id="profileCreated">—</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm text-muted">Last Updated</span>
+                          <span class="text-sm" id="profileUpdated">—</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script src="js/icons.js?v=19"></script>
+  <script src="js/utils.js?v=19"></script>
+  <script src="js/api.js?v=19"></script>
+  <script src="js/theme.js?v=19"></script>
+  <script src="js/layout.js?v=19"></script>
+  <script src="js/doctor-profile.js?v=19"></script>
+</body>
+</html>

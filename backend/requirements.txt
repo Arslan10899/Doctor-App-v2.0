@@ -1,0 +1,15 @@
+# ---------------------------------------------------------------------------
+# Doctor Application – backend requirements
+# ---------------------------------------------------------------------------
+# Core (required)
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9      # file uploads (doctor avatar)
+pydantic>=2.7.0
+email-validator>=2.1.0
+
+# ---------------------------------------------------------------------------
+# Optional – enable later, no code changes required
+# ---------------------------------------------------------------------------
+# firebase-admin>=6.5.0        # set FIREBASE_ENABLED=1
+# cloudinary>=1.41.0          # set CLOUDINARY_ENABLED=1

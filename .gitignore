@@ -1,0 +1,30 @@
+# --- runtime data ----------------------------------------------------------
+# the SQLite database is rebuilt from data/firestore_backup.json at boot
+data/doctor_app.db
+data/doctor_app.db-wal
+data/doctor_app.db-shm
+data/*.db-journal
+
+# uploaded banners / avatars (ephemeral on hosts – use link-based banners
+# or plug Cloudinary, see README)
+backend/uploads/
+!backend/uploads/.gitkeep
+
+# --- secrets – never commit ------------------------------------------------
+# Firebase admin key is banned in this project; only the Firestore backup
+# is the data source (data/firestore_backup.json).
+serviceAccountKey.json
+*.env
+.env.local
+
+# --- python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- editor / OS -----------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

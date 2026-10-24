@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Doctor · Doctor Application</title>
+  <meta name="description" content="Edit a doctor's complete record – profile, clinics, timings, OPD, OT schedule and statistics." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=19" />
+  <link rel="stylesheet" href="css/layout.css?v=19" />
+  <link rel="stylesheet" href="css/components.css?v=19" />
+  <link rel="stylesheet" href="css/doctor-edit.css?v=19" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <!-- Page heading -->
+              <div class="page-head">
+                <div>
+                  <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+                    <a href="doctors.html?v=19" class="btn btn-outline btn-sm">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                      Back to Doctors
+                    </a>
+                    <span class="text-sm text-muted" id="editorCrumb">Full record editor</span>
+                  </div>
+                  <h1 id="editorTitle" style="margin-top:.625rem;">Edit doctor</h1>
+                  <p class="text-sm text-muted" id="editorSub" style="margin-top:.25rem;">Loading record…</p>
+                </div>
+              </div>
+
+              <div id="editorError" class="empty-state" style="display:none;">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                <strong>Unable to load doctor</strong>
+                <p class="text-sm text-muted" id="editorErrorMsg">Please try again.</p>
+                <a href="doctors.html?v=19" class="btn btn-outline" style="margin-top:.75rem;">Back to Doctors</a>
+              </div>
+
+              <form id="doctorEditForm" autocomplete="off" style="display:flex;flex-direction:column;gap:1rem;">
+                <!-- Sticky action bar -->
+                <div class="editor-actions">
+                  <div class="editor-status">
+                    <span class="dot dot-warning" id="editorDot"></span>
+                    <span id="editorStatus">Unsaved changes</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                    <a href="doctor-profile.html?v=19" class="btn btn-outline btn-sm" id="viewProfile">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                      View profile
+                    </a>
+                    <a href="doctors.html?v=19" class="btn btn-outline btn-sm" id="cancelEdit">Cancel</a>
+                    <button type="submit" class="btn btn-primary btn-sm" id="saveDoctorBtn">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+                      Save changes
+                    </button>
+                  </div>
+                </div>
+
+                <!-- ============ Identity ============ -->
+                <section class="card">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">Identity</div>
+                      <div class="card-description">Name, contact details and account status</div>
+                    </div>
+                  </div>
+                  <div class="card-content">
+                    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;">
+                      <div id="editAvatarPreview"></div>
+                      <div>
+                        <label class="btn btn-outline btn-sm" for="avatarInput" style="cursor:pointer;">
+                          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                          Upload picture
+                        </label>
+                        <input type="file" id="avatarInput" accept="image/*" hidden />
+                        <p class="hint" style="margin-top:.375rem;">PNG or JPG, max 5 MB. Uploaded after saving.</p>
+                      </div>
+                    </div>
+
+                    <div class="form-grid">
+                      <div class="field">
+                        <label for="f-name">Full name *</label>
+                        <input class="input" id="f-name" name="name" type="text" required />
+                      </div>
+                      <div class="field">
+                        <label for="f-urdu_name">Urdu name</label>
+                        <input class="input" id="f-urdu_name" name="urdu_name" type="text" dir="rtl" placeholder="ڈاکٹر …" />
+                      </div>
+                      <div class="field">
+                        <label for="f-email">Email *</label>
+                        <input class="input" id="f-email" name="email" type="email" required />
+                      </div>
+                      <div class="field">
+                        <label for="f-phone">Phone</label>
+                        <input class="input" id="f-phone" name="phone" type="tel" placeholder="+92 300 1234567" />
+                      </div>
+                      <div class="field">
+                        <label for="f-whatsapp">WhatsApp</label>
+                        <input class="input" id="f-whatsapp" name="whatsapp" type="tel" placeholder="+92 300 1234567" />
+                      </div>
+                      <div class="field">
+                        <label for="f-gender">Gender</label>
+                        <select class="select" id="f-gender" name="gender">
+                          <option value="">Prefer not to say</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                          <option value="Rather Not Say">Rather Not Say</option>
+                        </select>
+                      </div>
+                      <div class="field">
+                        <label for="f-status">Status</label>
+                        <select class="select" id="f-status" name="status">
+                          <option value="Active">Active</option>
+                          <option value="On Leave">On Leave</option>
+                          <option value="Inactive">Inactive</option>
+                        </select>
+                      </div>
+                      <div class="field">
+                        <label for="f-avatar_url">Avatar URL</label>
+                        <input class="input" id="f-avatar_url" name="avatar_url" type="text" placeholder="https://…" />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ============ Professional ============ -->
+                <section class="card">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">Professional details</div>
+                      <div class="card-description">Specialty, qualification, fee and practice location</div>
+                    </div>
+                  </div>
+                  <div class="card-content">
+                    <div class="form-grid">
+                      <div class="field">
+                        <label for="f-specialty">Specialty *</label>
+                        <input class="input" id="f-specialty" name="specialty" type="text" list="specialtyOptions" required />
+                        <datalist id="specialtyOptions"></datalist>
+                      </div>
+                      <div class="field">
+                        <label for="f-qualification">Qualification</label>
+                        <input class="input" id="f-qualification" name="qualification" type="text" placeholder="MBBS, FCPS" />
+                      </div>
+                      <div class="field">
+                        <label for="f-experience_years">Experience (years)</label>
+                        <input class="input" id="f-experience_years" name="experience_years" type="number" min="0" max="70" step="1" />
+                      </div>
+                      <div class="field">
+                        <label for="f-hospital">Hospital / Clinic</label>
+                        <input class="input" id="f-hospital" name="hospital" type="text" />
+                      </div>
+                      <div class="field">
+                        <label for="f-city">City</label>
+                        <input class="input" id="f-city" name="city" type="text" />
+                      </div>
+                      <div class="field">
+                        <label for="f-country">Country</label>
+                        <input class="input" id="f-country" name="country" type="text" />
+                      </div>
+                      <div class="field">
+                        <label for="f-consultation_fee">Consultation fee (PKR)</label>
+                        <input class="input" id="f-consultation_fee" name="consultation_fee" type="number" min="0" step="50" />
+                      </div>
+                      <div class="field">
+                        <label for="f-rating">Rating (0 – 5)</label>
+                        <input class="input" id="f-rating" name="rating" type="number" min="0" max="5" step="any" />
+                      </div>
+                      <div class="field">
+                        <label for="f-views_count">Profile views</label>
+                        <input class="input" id="f-views_count" name="views_count" type="number" min="0" step="1" />
+                      </div>
+                      <div class="field">
+                        <label for="f-total_calls">Total calls</label>
+                        <input class="input" id="f-total_calls" name="total_calls" type="number" min="0" step="1" />
+                      </div>
+                    </div>
+
+                    <div class="switch-row" style="margin-top:1rem;">
+                      <div class="switch-copy">
+                        <strong>Sehat Card empaneled</strong>
+                        <span>Show the Sehat Card badge on the doctor profile.</span>
+                      </div>
+                      <button type="button" class="switch" id="sehatSwitch" role="switch" aria-checked="false" aria-label="Sehat Card empaneled"></button>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ============ About ============ -->
+                <section class="card">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">About &amp; treatments</div>
+                      <div class="card-description">Content shown to patients</div>
+                    </div>
+                  </div>
+                  <div class="card-content" style="display:flex;flex-direction:column;gap:1rem;">
+                    <div class="field">
+                      <label for="f-doctors_message">Doctor message</label>
+                      <textarea class="textarea" id="f-doctors_message" name="doctors_message" rows="4" placeholder="A short introduction shown in the patient app."></textarea>
+                    </div>
+                    <div class="field">
+                      <label for="f-diseases">Diseases treated</label>
+                      <textarea class="textarea" id="f-diseases" name="diseases" rows="4" placeholder="Gallstones, Hernia, Piles, …"></textarea>
+                      <span class="hint">Separate conditions with commas or new lines.</span>
+                    </div>
+                    <div class="field">
+                      <label for="f-bio">Internal bio</label>
+                      <textarea class="textarea" id="f-bio" name="bio" rows="3" placeholder="Internal notes / short bio."></textarea>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ============ Clinics ============ -->
+                <section class="card">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">Clinics &amp; timings</div>
+                      <div class="card-description">Each clinic keeps its own weekly schedule</div>
+                    </div>
+                    <div class="card-action">
+                      <button type="button" class="btn btn-outline btn-sm" id="addClinicBtn">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Add clinic
+                      </button>
+                    </div>
+                  </div>
+                  <div class="card-content">
+                    <div id="clinicsHost" style="display:flex;flex-direction:column;gap:.875rem;"></div>
+                  </div>
+                </section>
+
+                <!-- ============ OT schedule ============ -->
+                <section class="card">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">OT schedule</div>
+                      <div class="card-description">Operation theatre days, hospital and time</div>
+                    </div>
+                    <div class="card-action">
+                      <button type="button" class="btn btn-outline btn-sm" id="addOtBtn">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Add OT row
+                      </button>
+                    </div>
+                  </div>
+                  <div class="card-content">
+                    <div id="otHost" style="display:flex;flex-direction:column;gap:.875rem;"></div>
+                  </div>
+                </section>
+
+                <!-- ============ OPD ============ -->
+                <section class="card">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">OPD information</div>
+                      <div class="card-description">Out-patient department availability</div>
+                    </div>
+                    <div class="card-action">
+                      <button type="button" class="switch" id="opdSwitch" role="switch" aria-checked="false" aria-label="OPD available"></button>
+                    </div>
+                  </div>
+                  <div class="card-content">
+                    <div id="opdFields" style="display:none;flex-direction:column;gap:1rem;">
+                      <div class="form-grid">
+                        <div class="field">
+                          <label for="f-opd_hospital">Hospital</label>
+                          <input class="input" id="f-opd_hospital" type="text" />
+                        </div>
+                        <div class="field">
+                          <label for="f-opd_specialty">Specialty</label>
+                          <input class="input" id="f-opd_specialty" type="text" />
+                        </div>
+                        <div class="field span-2">
+                          <label for="f-opd_time">Time</label>
+                          <input class="input" id="f-opd_time" type="text" placeholder="08:00 AM - 01:00 PM" />
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label>Days</label>
+                        <div class="day-picker" id="opdDays"></div>
+                      </div>
+                    </div>
+                    <div class="editor-empty" id="opdEmpty">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+                      <span>OPD is not available for this doctor. Turn on the switch to add a schedule.</span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Bottom actions -->
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:.5rem;flex-wrap:wrap;">
+                  <a href="doctors.html?v=19" class="btn btn-outline" id="cancelEditBottom">Cancel</a>
+                  <button type="submit" class="btn btn-primary">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+                    Save changes
+                  </button>
+                </div>
+              </form>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script src="js/icons.js?v=19"></script>
+  <script src="js/utils.js?v=19"></script>
+  <script src="js/api.js?v=19"></script>
+  <script src="js/theme.js?v=19"></script>
+  <script src="js/layout.js?v=19"></script>
+  <script src="js/doctor-edit.js?v=19"></script>
+</body>
+</html>

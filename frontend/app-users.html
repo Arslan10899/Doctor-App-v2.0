@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Users · Doctor Application</title>
+  <meta name="description" content="Mobile app users from the backup – registered accounts plus FCM device tokens for push notifications." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=19" />
+  <link rel="stylesheet" href="css/layout.css?v=19" />
+  <link rel="stylesheet" href="css/components.css?v=19" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <!-- Page heading -->
+              <div class="page-head">
+                <div>
+                  <h1>App Users</h1>
+                  <p>Everyone using the mobile app – registered accounts plus the FCM device tokens used for push notifications. Imported from the backup.</p>
+                </div>
+              </div>
+
+              <!-- Summary chips -->
+              <div class="au-summary" id="auSummary"></div>
+
+              <!-- Table card -->
+              <section class="card">
+                <div class="table-toolbar">
+                  <div class="table-toolbar-left">
+                    <div class="input-icon">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                      <input class="input" type="search" id="appUserSearch" placeholder="Search name, email, token…" style="min-width:16rem;" />
+                    </div>
+                    <select class="select" id="registeredFilter" aria-label="Filter by account type" style="width:auto;">
+                      <option value="all">All accounts</option>
+                      <option value="yes">Registered users</option>
+                      <option value="no">Device tokens only</option>
+                    </select>
+                  </div>
+                  <div class="table-toolbar-right">
+                    <span class="text-sm text-muted" id="resultsInfo">Loading…</span>
+                    <button type="button" class="btn btn-outline btn-sm" id="copyTokensBtn" title="Copy every FCM device token to the clipboard" aria-label="Copy all push tokens">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                      Copy tokens
+                    </button>
+                  </div>
+                </div>
+
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Type</th>
+                        <th>Earning</th>
+                        <th>Device token (FCM)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="appUserTableBody"></tbody>
+                  </table>
+                  <div class="editor-empty hidden" id="appUsersEmpty">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                    <span>No app user matches this filter.</span>
+                  </div>
+                </div>
+
+                <div class="pagination" id="pagination"></div>
+              </section>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <style>
+    .au-summary {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+      gap: .75rem; margin-bottom: 1rem;
+    }
+    .au-chip {
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: .875rem 1rem; background: var(--card);
+    }
+    .au-chip-value { font-size: 1.375rem; font-weight: 600; line-height: 1.2; }
+    .au-chip-label { font-size: .75rem; color: var(--muted-foreground); margin-top: .125rem; }
+    .au-badge {
+      display: inline-flex; align-items: center; gap: .3125rem;
+      padding: .2rem .55rem; border-radius: 999px; font-size: .75rem; font-weight: 500;
+      border: 1px solid var(--border); color: var(--muted-foreground);
+    }
+    .au-badge.is-registered { color: var(--primary); border-color: color-mix(in oklab, var(--primary) 35%, transparent); background: color-mix(in oklab, var(--primary) 8%, transparent); }
+    .au-token {
+      font-family: var(--font-mono); font-size: .75rem; color: var(--muted-foreground);
+      max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      display: inline-block; vertical-align: middle;
+    }
+    .au-copy {
+      border: 1px solid var(--border); background: transparent; border-radius: var(--radius-md);
+      padding: .15rem .35rem; cursor: pointer; color: var(--muted-foreground); line-height: 1;
+    }
+    .au-copy:hover { color: var(--foreground); border-color: var(--ring); }
+    .au-copy .icon { width: .75rem; height: .75rem; }
+  </style>
+
+  <script src="js/icons.js?v=19"></script>
+  <script src="js/utils.js?v=19"></script>
+  <script src="js/api.js?v=19"></script>
+  <script src="js/theme.js?v=19"></script>
+  <script src="js/layout.js?v=19"></script>
+  <script src="js/app-users.js?v=19"></script>
+</body>
+</html>

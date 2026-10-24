@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hospital Profile · Doctor Application</title>
+  <meta name="description" content="One hospital at a glance – attached doctors and every OPD/OT duty slot, imported from the backup." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=19" />
+  <link rel="stylesheet" href="css/layout.css?v=19" />
+  <link rel="stylesheet" href="css/components.css?v=19" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <!-- Page heading -->
+              <div class="page-head">
+                <div>
+                  <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+                    <a href="hospitals.html?v=19" class="btn btn-outline btn-sm">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                      Back to Hospitals
+                    </a>
+                    <span class="text-sm text-muted">Hospital profile</span>
+                  </div>
+                </div>
+                <a href="appointments.html?v=19" class="btn btn-outline">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+                  All duty slots
+                </a>
+              </div>
+
+              <div id="profileError" class="empty-state" style="display:none;">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                <strong>Unable to load this hospital</strong>
+                <p id="profileErrorMsg" class="text-sm text-muted">Please try again.</p>
+                <a href="hospitals.html?v=19" class="btn btn-outline" style="margin-top:.75rem;">Back to Hospitals</a>
+              </div>
+
+              <div id="profileContent" style="display:flex;flex-direction:column;gap:1rem;">
+                <!-- Header card -->
+                <section class="card">
+                  <div class="card-header">
+                    <div style="display:flex;align-items:center;gap:1rem;min-width:0;flex-wrap:wrap;">
+                      <div class="hp-tile"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div>
+                      <div style="min-width:0;">
+                        <div class="card-title" style="font-size:1.125rem;" id="hpName">Loading…</div>
+                        <div class="card-description" id="hpUrdu" style="direction:rtl;text-align:start;"></div>
+                        <div id="hpBadges" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.5rem;"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-content">
+                    <div class="grid grid-4" id="hpStats"></div>
+                  </div>
+                </section>
+
+                <!-- Doctors at this hospital -->
+                <section class="card hp-section" id="doctors">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">Doctors at this hospital</div>
+                      <div class="card-description" id="hpDoctorsNote">Doctors whose clinic address references this hospital.</div>
+                    </div>
+                    <div class="card-action" id="hpDoctorsJump">
+                      <button type="button" class="btn btn-outline btn-sm" data-jump="#slots">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Duty slots
+                      </button>
+                    </div>
+                  </div>
+                  <div class="table-wrap" id="hpDoctorsWrap">
+                    <table class="table">
+                      <thead>
+                        <tr><th>Doctor</th><th>Specialty</th><th>Status</th><th>Rating</th></tr>
+                      </thead>
+                      <tbody id="hpDoctorsBody"></tbody>
+                    </table>
+                    <div class="editor-empty hidden" id="hpDoctorsEmpty">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                      <span>No doctor references this hospital in the backup.</span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- OPD/OT duty slots -->
+                <section class="card hp-section" id="slots">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">OPD / OT duty slots</div>
+                      <div class="card-description">Every appointment slot the mobile app can book at this hospital.</div>
+                    </div>
+                    <div class="card-action">
+                      <button type="button" class="btn btn-outline btn-sm" data-jump="#doctors">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Doctors
+                      </button>
+                    </div>
+                  </div>
+                  <div class="table-wrap">
+                    <table class="table">
+                      <thead>
+                        <tr><th>Doctor on duty</th><th>Specialty</th><th>Day</th><th>Time</th></tr>
+                      </thead>
+                      <tbody id="hpSlotsBody"></tbody>
+                    </table>
+                    <div class="editor-empty hidden" id="hpSlotsEmpty">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+                      <span>No OPD/OT duty slot was imported for this hospital.</span>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <style>
+    .hp-tile {
+      width: 3rem; height: 3rem; border-radius: var(--radius-lg); flex: none;
+      display: flex; align-items: center; justify-content: center;
+      background: color-mix(in oklab, var(--primary) 10%, transparent); color: var(--primary);
+    }
+    .hp-tile .icon { width: 1.375rem; height: 1.375rem; }
+    .hp-badge {
+      display: inline-flex; align-items: center; gap: .3rem;
+      padding: .25rem .625rem; border-radius: 999px; font-size: .75rem;
+      border: 1px solid var(--border); color: var(--muted-foreground);
+    }
+    .hp-badge .icon { width: .75rem; height: .75rem; }
+    .hp-badge.is-primary { color: var(--primary); border-color: color-mix(in oklab, var(--primary) 35%, transparent); background: color-mix(in oklab, var(--primary) 8%, transparent); }
+    .stat-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: .875rem 1rem; }
+    .stat-top { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
+    .stat-icon {
+      width: 2rem; height: 2rem; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      background: color-mix(in oklab, var(--primary) 10%, transparent); color: var(--primary);
+    }
+    .stat-icon .icon { width: 1rem; height: 1rem; }
+    .stat-value { font-size: 1.375rem; font-weight: 600; line-height: 1.2; }
+    .stat-label { font-size: .75rem; color: var(--muted-foreground); }
+    .hp-day {
+      display: inline-flex; padding: .2rem .55rem; border-radius: 999px;
+      border: 1px solid var(--border); font-size: .75rem; color: var(--muted-foreground);
+    }
+    .hp-section.is-flash { animation: hpFlash 1.4s ease; }
+    @keyframes hpFlash {
+      0%, 55% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 55%, transparent); }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+    /* smooth entrance for the whole page content */
+    #profileContent { animation: hpIn .35s ease both; }
+    @keyframes hpIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+  </style>
+
+  <script src="js/icons.js?v=19"></script>
+  <script src="js/utils.js?v=19"></script>
+  <script src="js/api.js?v=19"></script>
+  <script src="js/theme.js?v=19"></script>
+  <script src="js/layout.js?v=19"></script>
+  <script src="js/hospital-profile.js?v=19"></script>
+</body>
+</html>

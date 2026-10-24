@@ -1,0 +1,27 @@
+# Render.com Blueprint – free "Web Service" deployment.
+# Push this folder to GitHub, then on render.com: New + → Blueprint → pick the repo.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: doctor-app-admin
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    # PORT/HOST are injected by Render; run.py reads them.
+    startCommand: python run.py
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      # the bundled backup rebuilds the database automatically on boot
+      - key: DOCTOR_APP_BACKUP
+        value: data/firestore_backup.json
+      # keep My Ads / panel notifications on the instance disk (ephemeral on the
+      # free plan – they ride until restart; use link-based banners meanwhile)
+      - key: HOST
+        value: 0.0.0.0
+      # a strong random value is generated automatically when not preset:
+      - key: DOCTOR_APP_SECRET
+        generateValue: true

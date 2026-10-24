@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="Doctor avatar placeholder">
+  <rect width="96" height="96" rx="48" fill="#e7e7e7"/>
+  <g fill="none" stroke="#9a9a9a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="48" cy="38" r="15"/>
+    <path d="M21 82c0-14.9 12.1-27 27-27s27 12.1 27 27"/>
+  </g>
+</svg>

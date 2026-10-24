@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hospitals · Doctor Application</title>
+  <meta name="description" content="Hospital directory imported from the backup – names, cities, linked doctors and OPD/OT duty slots." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=19" />
+  <link rel="stylesheet" href="css/layout.css?v=19" />
+  <link rel="stylesheet" href="css/components.css?v=19" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <!-- Page heading -->
+              <div class="page-head">
+                <div>
+                  <h1>Hospitals</h1>
+                  <p>Hospital directory imported from the local backup – click a hospital to open its full view with attached doctors and OPD/OT duty slots.</p>
+                </div>
+              </div>
+
+              <!-- Cities strip -->
+              <div class="hosp-cities" id="citiesStrip"></div>
+
+              <!-- Toolbar -->
+              <section class="card">
+                <div class="table-toolbar">
+                  <div class="table-toolbar-left">
+                    <div class="input-icon">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                      <input class="input" type="search" id="hospitalSearch" placeholder="Search hospital, city…" style="min-width:16rem;" />
+                    </div>
+                    <select class="select" id="cityFilter" aria-label="Filter by city" style="width:auto;min-width:12rem;">
+                      <option value="all">All cities</option>
+                    </select>
+                  </div>
+                  <div class="table-toolbar-right">
+                    <span class="text-sm text-muted" id="resultsInfo">Loading…</span>
+                  </div>
+                </div>
+
+                <!-- Hospital cards -->
+                <div class="card-content">
+                  <div class="hosp-grid" id="hospitalsGrid"></div>
+                  <div class="editor-empty hidden" id="hospitalsEmpty" style="margin-top:.5rem;">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg>
+                    <span>No hospital matches this filter.</span>
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <style>
+    .hosp-cities { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+    .hosp-city-chip {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .4rem .75rem; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--card);
+      font-size: .8125rem; cursor: pointer; color: var(--muted-foreground);
+      transition: border-color .15s ease, color .15s ease, background .15s ease;
+    }
+    .hosp-city-chip strong { color: var(--foreground); font-weight: 500; }
+    .hosp-city-chip.is-active { border-color: var(--primary); color: var(--primary); background: color-mix(in oklab, var(--primary) 8%, transparent); }
+    .hosp-city-chip:hover { border-color: var(--ring); }
+    .hosp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr)); gap: 1.25rem; }
+    .hosp-card {
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1.375rem 1.5rem; display: flex; flex-direction: column; gap: 1.125rem;
+      background: var(--card); cursor: pointer; text-align: start;
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+    .hosp-card:hover {
+      border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+      box-shadow: 0 8px 24px -12px rgb(0 0 0 / .25);
+      transform: translateY(-2px);
+    }
+    .hosp-card:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+    .hosp-card-top { display: flex; align-items: flex-start; gap: .875rem; }
+    .hosp-tile {
+      width: 2.75rem; height: 2.75rem; border-radius: var(--radius-md); flex: none;
+      display: flex; align-items: center; justify-content: center;
+      background: color-mix(in oklab, var(--primary) 10%, transparent); color: var(--primary);
+    }
+    .hosp-tile .icon { width: 1.25rem; height: 1.25rem; }
+    .hosp-card-head { min-width: 0; }
+    .hosp-name { font-weight: 600; font-size: 1.0625rem; line-height: 1.3; }
+    .hosp-name-urdu { font-size: .875rem; color: var(--muted-foreground); margin-top: .25rem; direction: rtl; text-align: start; }
+    .hosp-city-badge {
+      display: inline-flex; align-items: center; gap: .25rem; font-size: .75rem;
+      padding: .25rem .625rem; border-radius: 999px; border: 1px solid var(--border);
+      color: var(--muted-foreground); white-space: nowrap; max-width: 10rem;
+      overflow: hidden; text-overflow: ellipsis; flex: none;
+    }
+    .hosp-city-badge .icon { width: .75rem; height: .75rem; }
+    .hosp-divider { border: 0; border-top: 1px solid var(--border); margin: 0; }
+    .hosp-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: .625rem; }
+    .hosp-metric {
+      display: flex; align-items: center; gap: .625rem;
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: .625rem .75rem; transition: border-color .15s ease, background .15s ease;
+      color: inherit; text-decoration: none; min-width: 0;
+    }
+    .hosp-metric:hover { border-color: color-mix(in oklab, var(--primary) 40%, var(--border)); background: color-mix(in oklab, var(--primary) 5%, transparent); }
+    .hosp-metric.is-empty { opacity: .55; cursor: default; }
+    .hosp-metric .icon { width: 1rem; height: 1rem; color: var(--primary); flex: none; }
+    .hosp-metric-text { min-width: 0; }
+    .hosp-metric-value { font-weight: 600; font-size: 1rem; line-height: 1.2; }
+    .hosp-metric-label { font-size: .75rem; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hosp-specialties { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .hosp-spec-chip {
+      display: inline-flex; padding: .25rem .55rem; border-radius: 999px;
+      background: color-mix(in oklab, var(--muted-foreground) 10%, transparent);
+      font-size: .75rem; color: var(--muted-foreground); max-width: 10rem;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .hosp-spec-chip span { overflow: hidden; text-overflow: ellipsis; }
+    .hosp-foot { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: auto; }
+    .hosp-view { display: inline-flex; align-items: center; gap: .375rem; font-size: .8125rem; font-weight: 500; color: var(--primary); }
+    .hosp-view .icon { width: .875rem; height: .875rem; transition: transform .15s ease; }
+    .hosp-card:hover .hosp-view .icon { transform: translateX(2px); }
+    .hosp-foot-note { font-size: .75rem; color: var(--muted-foreground); }
+    a.hosp-metric { color: inherit; }
+  </style>
+
+  <script src="js/icons.js?v=19"></script>
+  <script src="js/utils.js?v=19"></script>
+  <script src="js/api.js?v=19"></script>
+  <script src="js/theme.js?v=19"></script>
+  <script src="js/layout.js?v=19"></script>
+  <script src="js/hospitals.js?v=19"></script>
+</body>
+</html>

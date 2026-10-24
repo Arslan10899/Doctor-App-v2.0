@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Specialties · Doctor Application</title>
+  <meta name="description" content="Departments imported from the backup plus the OPD specialty groups exactly as the mobile app shows them (English + Urdu)." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=19" />
+  <link rel="stylesheet" href="css/layout.css?v=19" />
+  <link rel="stylesheet" href="css/components.css?v=19" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <!-- Page heading -->
+              <div class="page-head">
+                <div>
+                  <h1>Specialties</h1>
+                  <p>Every department in the system with its doctor count, plus the OPD specialty groups exactly as the mobile app groups them (English + Urdu).</p>
+                </div>
+              </div>
+
+              <!-- Departments table -->
+              <section class="card">
+                <div class="table-toolbar">
+                  <div class="table-toolbar-left">
+                    <div class="input-icon">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                      <input class="input" type="search" id="deptSearch" placeholder="Search department…" style="min-width:15rem;" />
+                    </div>
+                  </div>
+                  <div class="table-toolbar-right">
+                    <span class="text-sm text-muted" id="deptInfo">Loading…</span>
+                  </div>
+                </div>
+
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Department / specialty</th>
+                        <th>Doctors</th>
+                        <th>Open in Doctors page</th>
+                      </tr>
+                    </thead>
+                    <tbody id="deptTableBody"></tbody>
+                  </table>
+                </div>
+              </section>
+
+              <!-- OPD specialty groups -->
+              <section class="card" style="margin-top:1.25rem;">
+                <div class="table-toolbar">
+                  <div class="table-toolbar-left">
+                    <h2 style="font-size:1rem;font-weight:600;">OPD specialty groups (as in the app)</h2>
+                  </div>
+                  <div class="table-toolbar-right">
+                    <span class="text-sm text-muted" id="opdInfo">Loading…</span>
+                  </div>
+                </div>
+
+                <div class="card-content">
+                  <div class="opd-grid" id="opdGrid"></div>
+                  <div class="editor-empty hidden" id="opdEmpty">
+                    <span>No OPD specialty imported.</span>
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <style>
+    .opd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .75rem; }
+    .opd-card {
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: .75rem 1rem; display: flex; flex-direction: column; gap: .25rem;
+    }
+    .opd-en { font-weight: 500; font-size: .875rem; }
+    .opd-ur { font-size: .875rem; color: var(--muted-foreground); direction: rtl; text-align: start; }
+    .sp-count {
+      display: inline-flex; padding: .2rem .5rem; border-radius: 999px;
+      border: 1px solid var(--border); font-size: .75rem; color: var(--muted-foreground);
+    }
+  </style>
+
+  <script src="js/icons.js?v=19"></script>
+  <script src="js/utils.js?v=19"></script>
+  <script src="js/api.js?v=19"></script>
+  <script src="js/theme.js?v=19"></script>
+  <script src="js/layout.js?v=19"></script>
+  <script src="js/specialties.js?v=19"></script>
+</body>
+</html>

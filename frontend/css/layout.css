@@ -1,0 +1,851 @@
+/* ==========================================================================
+   Doctor Application – App shell layout
+   --------------------------------------------------------------------------
+   The shell follows the ui.shadcn.com layout:
+
+     • a full width, sticky header that owns the brand, the primary
+       navigation, the search field and the account actions
+     • a sticky sidebar column that lives *inside* the content area
+       (instead of floating over it) and is separated from the content
+       by a soft gradient rule
+     • on small screens the sidebar turns into a slide-in drawer
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Site header
+   -------------------------------------------------------------------------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: var(--header-height);
+  padding: 0 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .site-header-inner {
+    padding: 0 1.5rem;
+  }
+}
+
+/* Brand (header) --------------------------------------------------------- */
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 0.25rem;
+  white-space: nowrap;
+}
+
+.header-brand .brand-mark {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  display: block;
+}
+
+.header-brand .brand-mark svg {
+  width: 0.9375rem;
+  height: 0.9375rem;
+}
+
+.header-brand-name {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 479px) {
+  .header-brand-name {
+    display: none;
+  }
+}
+
+/* Mobile "Menu" trigger -------------------------------------------------- */
+.menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  height: 2rem;
+  padding: 0 0.5rem 0 0.25rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--foreground);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.menu-trigger:hover {
+  background-color: var(--accent);
+}
+
+@media (min-width: 1024px) {
+  .menu-trigger {
+    display: none;
+  }
+}
+
+.menu-bars {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+}
+
+.menu-bars span {
+  position: absolute;
+  left: 0;
+  display: block;
+  height: 2px;
+  width: 1rem;
+  background-color: currentColor;
+  transition: transform 0.15s ease, top 0.15s ease;
+}
+
+.menu-bars span:first-child { top: 0.375rem; }
+.menu-bars span:last-child { top: 0.75rem; }
+
+/* Primary navigation ----------------------------------------------------- */
+.header-nav {
+  display: none;
+  align-items: center;
+  gap: 0.125rem;
+  margin-left: 0.5rem;
+}
+
+@media (min-width: 1024px) {
+  .header-nav {
+    display: flex;
+  }
+}
+
+.header-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2rem;
+  padding: 0 0.625rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.header-nav-link:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.header-nav-link.is-active {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.header-nav-link .icon {
+  width: 0.9375rem;
+  height: 0.9375rem;
+}
+
+/* Header actions --------------------------------------------------------- */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-left: auto;
+}
+
+/* Search field ----------------------------------------------------------- */
+.header-search {
+  position: relative;
+  display: none;
+  align-items: center;
+  width: 15rem;
+  margin-right: 0.25rem;
+}
+
+@media (min-width: 768px) {
+  .header-search {
+    display: flex;
+  }
+}
+
+.header-search .icon {
+  position: absolute;
+  left: 0.625rem;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.header-search input {
+  width: 100%;
+  height: 2rem;
+  padding: 0 2.75rem 0 2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.header-search input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.header-search input:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 28%, transparent);
+}
+
+.header-search kbd {
+  position: absolute;
+  right: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  height: 1.25rem;
+  padding: 0 0.3125rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 4px);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.header-search input:focus ~ kbd,
+.header-search input:not(:placeholder-shown) ~ kbd {
+  opacity: 0;
+}
+
+/* Small round buttons used in the header --------------------------------- */
+.header-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.header-icon-btn:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.header-icon-btn .icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.header-sep {
+  width: 1px;
+  height: 1.25rem;
+  margin: 0 0.25rem;
+  background-color: var(--border);
+}
+
+@media (max-width: 767px) {
+  .header-sep {
+    display: none;
+  }
+}
+
+/* Avatar trigger --------------------------------------------------------- */
+.header-avatar {
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0 0.25rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.header-avatar:hover {
+  background-color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+   Shell (sidebar + content)
+   -------------------------------------------------------------------------- */
+.site-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.shell-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 0 0.5rem;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  width: 100%;
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .shell {
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  }
+}
+
+/* Sidebar ---------------------------------------------------------------- */
+.shell-sidebar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  color: var(--sidebar-foreground);
+}
+
+/* Soft gradient rule between the sidebar and the content. */
+.shell-sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--border) 12%,
+    var(--border) 88%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .shell-sidebar {
+    position: sticky;
+    top: calc(var(--header-height) + 1rem);
+    z-index: 30;
+    height: calc(100svh - var(--header-height) - 2rem);
+    overflow: hidden;
+  }
+}
+
+.sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-nav {
+  width: var(--sidebar-menu-width);
+  /* the rail handle sits in the top-right corner – keep the menu clear of it */
+  padding: 2.75rem 0 1rem 0.625rem;
+}
+
+.nav-group {
+  padding: 0.5rem 0;
+}
+
+.nav-heading {
+  display: flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 1.875rem;
+  padding: 0 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-item + .nav-item {
+  margin-top: 0.25rem;
+}
+
+.nav-item:hover {
+  background-color: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+
+.nav-item .icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  transition: color 0.15s ease;
+}
+
+.nav-item:hover .icon,
+.nav-item.is-active .icon {
+  color: inherit;
+}
+
+.nav-item.is-active {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--sidebar-accent-foreground);
+  font-weight: 500;
+}
+
+.nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-badge {
+  padding: 0 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-item.is-active .nav-badge {
+  background-color: color-mix(in oklab, var(--sidebar-accent-foreground) 18%, transparent);
+  color: var(--sidebar-accent-foreground);
+}
+
+/* Sidebar footer --------------------------------------------------------- */
+.sidebar-footer {
+  flex-shrink: 0;
+  padding: 0.625rem 0 0.5rem 0.625rem;
+  width: var(--sidebar-menu-width);
+}
+
+.sidebar-promo {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: color-mix(in oklab, var(--muted) 55%, transparent);
+}
+
+.sidebar-promo strong {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.sidebar-promo span {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sidebar-user:hover {
+  background-color: var(--sidebar-accent);
+}
+
+.sidebar-user-meta {
+  min-width: 0;
+  flex: 1;
+  line-height: 1.25;
+}
+
+.sidebar-user-meta strong {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-user-meta span {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-user > .icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* Collapse toggle – a circular handle pinned on the sidebar's right edge
+   (shadcn-style rail button): half outside the border line so it reads as
+   an edge control, arrows flip with the state. */
+.sidebar-collapse {
+  position: absolute;
+  top: 0.25rem;
+  right: 0;
+  z-index: 3;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--sidebar);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transform: translateX(50%);
+  box-shadow: 0 1px 3px rgb(0 0 0 / .14), 0 0 0 1px rgb(0 0 0 / .02);
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease,
+              box-shadow .15s ease;
+}
+
+.sidebar-collapse:hover {
+  color: var(--primary);
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  background: color-mix(in oklab, var(--primary) 8%, var(--sidebar));
+  box-shadow: 0 2px 6px -1px rgb(0 0 0 / .18);
+}
+
+.sidebar-collapse:active {
+  transform: translateX(50%) scale(0.94);
+}
+
+.sidebar-collapse:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.sidebar-collapse .icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+@media (min-width: 1024px) {
+  .sidebar-collapse {
+    display: inline-flex;
+  }
+}
+
+/* Close button – only used by the mobile drawer. */
+.sidebar-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.625rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-close:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.sidebar-close .icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .sidebar-close {
+    display: none;
+  }
+}
+
+/* Collapsed state -------------------------------------------------------- */
+@media (min-width: 1024px) {
+  body.sidebar-collapsed .shell {
+    grid-template-columns: var(--sidebar-width-icon) minmax(0, 1fr);
+  }
+
+  body.sidebar-collapsed .shell-sidebar::after {
+    right: 0;
+  }
+
+  body.sidebar-collapsed .sidebar-nav,
+  body.sidebar-collapsed .sidebar-footer {
+    width: var(--sidebar-width-icon);
+    /* no side padding in the rail – children centre themselves,
+       otherwise the round avatar ends up flush against the edge */
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  body.sidebar-collapsed .nav-heading,
+  body.sidebar-collapsed .nav-label,
+  body.sidebar-collapsed .nav-badge,
+  body.sidebar-collapsed .sidebar-promo,
+  body.sidebar-collapsed .sidebar-user-meta {
+    display: none;
+  }
+
+  body.sidebar-collapsed .nav-item {
+    justify-content: center;
+    padding: 0;
+  }
+
+  body.sidebar-collapsed .sidebar-user {
+    justify-content: center;
+    width: 100%;
+    padding: 0.375rem 0.25rem;
+  }
+
+  /* the dropdown chevron would overflow the 48px rail and push the
+     avatar half out of view – keep only the avatar in the rail */
+  body.sidebar-collapsed .sidebar-user-chevron {
+    display: none;
+  }
+}
+
+/* Mobile drawer ---------------------------------------------------------- */
+@media (max-width: 1023px) {
+  .shell-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 60;
+    width: 17rem;
+    height: 100svh;
+    padding: 0.5rem 0 1rem;
+    background-color: var(--background);
+    border-right: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  .shell-sidebar::after {
+    display: none;
+  }
+
+  body.sidebar-open .shell-sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-scroll {
+    padding-top: 2.75rem;
+  }
+
+  .sidebar-nav,
+  .sidebar-footer {
+    width: 100%;
+    padding-left: 0.5rem;
+  }
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background-color: rgb(0 0 0 / 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+body.sidebar-open .sidebar-overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* --------------------------------------------------------------------------
+   Page content
+   -------------------------------------------------------------------------- */
+.shell-body {
+  min-width: 0;
+  width: 100%;
+}
+
+.content {
+  padding: 1.25rem 0.5rem 3rem;
+}
+
+@media (min-width: 768px) {
+  .content {
+    padding: 1.5rem 1rem 3rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .content {
+    padding: 1.75rem 1.25rem 3rem;
+  }
+}
+
+.content-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 0.25rem;
+}
+
+.page-head h1 {
+  font-size: 1.375rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.page-head p {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* Grids ------------------------------------------------------------------ */
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.grid-4  { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-3  { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-2  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.col-12 { grid-column: span 12; }
+.col-8  { grid-column: span 8; }
+.col-7  { grid-column: span 7; }
+.col-6  { grid-column: span 6; }
+.col-5  { grid-column: span 5; }
+.col-4  { grid-column: span 4; }
+.col-3  { grid-column: span 3; }
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .grid-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .col-8  { grid-column: span 8; }
+  .col-7  { grid-column: span 7; }
+  .col-6  { grid-column: span 6; }
+  .col-5  { grid-column: span 5; }
+  .col-4  { grid-column: span 4; }
+  .col-3  { grid-column: span 3; }
+}
+
+@media (max-width: 1023px) {
+  .grid-12 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .col-8,
+  .col-7,
+  .col-6,
+  .col-5,
+  .col-4,
+  .col-3 {
+    grid-column: span 12;
+  }
+
+  .grid-4,
+  .grid-3,
+  .grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-4,
+  .grid-3,
+  .grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .content {
+    padding: 1rem 0.25rem 2rem;
+  }
+}

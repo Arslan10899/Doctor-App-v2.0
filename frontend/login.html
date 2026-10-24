@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in · Doctor Application</title>
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=19" />
+  <link rel="stylesheet" href="css/layout.css?v=19" />
+  <link rel="stylesheet" href="css/components.css?v=19" />
+
+  <style>
+    .auth-shell {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+    }
+
+    .auth-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 23rem;
+      margin: 0 auto;
+    }
+
+    .auth-aside {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 2.5rem;
+      background:
+        radial-gradient(120% 120% at 15% 10%, oklch(0.32 0.09 250 / 0.55) 0%, transparent 55%),
+        radial-gradient(90% 90% at 85% 90%, oklch(0.35 0.11 190 / 0.45) 0%, transparent 60%),
+        linear-gradient(160deg, oklch(0.16 0.02 260), oklch(0.12 0.01 250));
+      color: oklch(0.98 0 0);
+      overflow: hidden;
+    }
+
+    .auth-aside::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(80% 60% at 50% 40%, #000 40%, transparent 100%);
+    }
+
+    .auth-aside > * { position: relative; z-index: 1; }
+
+    .auth-feature {
+      display: flex;
+      gap: 0.875rem;
+      align-items: flex-start;
+      padding: 0.875rem 0;
+    }
+
+    .auth-feature-icon {
+      display: grid;
+      place-items: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      flex-shrink: 0;
+      border-radius: var(--radius-md);
+      background: rgb(255 255 255 / 0.1);
+    }
+
+    .auth-feature strong { display: block; font-size: 0.875rem; font-weight: 550; }
+    .auth-feature span { font-size: 0.8125rem; color: rgb(255 255 255 / 0.62); }
+
+    @media (max-width: 900px) {
+      .auth-shell { grid-template-columns: 1fr; }
+      .auth-aside { display: none; }
+    }
+  </style>
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <div class="auth-shell">
+
+    <!-- ===================== Form side ===================== -->
+    <div class="auth-panel">
+      <div class="auth-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;">
+          <a class="brand" href="index.html?v=19">
+            <img class="brand-mark" src="assets/app-icon-64.png?v=18" alt="Doctor App" />
+            <span class="brand-text">
+              <strong>Doctor App</strong>
+              <span>Clinic Manager</span>
+            </span>
+          </a>
+          <button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme"></button>
+        </div>
+
+        <h1 style="font-size:1.5rem;letter-spacing:-0.02em;">Welcome back</h1>
+        <p class="text-sm text-muted" style="margin-top:.375rem;">
+          Sign in to manage your clinic, doctors and appointments.
+        </p>
+
+        <form id="loginForm" style="margin-top:1.75rem;display:flex;flex-direction:column;gap:1rem;">
+          <div class="field">
+            <label for="loginEmail">Email address</label>
+            <input class="input" id="loginEmail" name="email" type="email" placeholder="admin@doctorapp.com" autocomplete="email" required />
+          </div>
+
+          <div class="field">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <label for="loginPassword">Password</label>
+              <a href="#" class="text-xs" style="color:var(--muted-foreground);" id="forgotLink">Forgot password?</a>
+            </div>
+            <div style="position:relative;">
+              <input class="input" id="loginPassword" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required style="padding-right:2.5rem;" />
+              <button type="button" class="icon-btn icon-btn-sm" id="togglePassword" aria-label="Show password" style="position:absolute;right:.25rem;top:.25rem;">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div id="loginError" class="hidden" style="padding:.625rem .75rem;border-radius:var(--radius-md);background:color-mix(in oklab, var(--destructive) 12%, transparent);color:color-mix(in oklab, var(--destructive) 85%, black);font-size:.8125rem;"></div>
+
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="loginBtn">Sign in</button>
+        </form>
+
+        <div style="margin-top:1.5rem;padding:.75rem;border:1px dashed var(--border);border-radius:var(--radius-md);">
+          <div class="text-xs text-muted" style="margin-bottom:.375rem;">Demo credentials</div>
+          <button type="button" class="btn btn-outline btn-sm btn-block" id="fillDemo">
+            admin@doctorapp.com &nbsp;·&nbsp; admin123
+          </button>
+        </div>
+
+        <p class="text-xs text-muted" style="margin-top:1.5rem;text-align:center;">
+          Doctor Application · v1.0.0
+        </p>
+      </div>
+    </div>
+
+    <!-- ===================== Brand side ===================== -->
+    <aside class="auth-aside">
+      <div style="display:flex;align-items:center;gap:.625rem;">
+        <span style="display:grid;place-items:center;width:2.25rem;height:2.25rem;border-radius:.625rem;background:rgb(255 255 255 / .12);">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49 0 3-1.5 3-3.5S20.49 7 19 7s-3 1.5-3 3.5 1.51 3.5 3 3.5Z"/><path d="M12.5 2.5 10 8h5l-2.5 5.5"/><path d="M5 22v-8H2l4-9 2.5 5.5"/></svg>
+        </span>
+        <strong style="font-size:.9375rem;letter-spacing:-.01em;">Doctor Application</strong>
+      </div>
+
+      <div>
+        <h2 style="font-size:2rem;line-height:1.2;letter-spacing:-0.03em;max-width:22rem;">
+          Everything your clinic needs, in one dashboard.
+        </h2>
+        <p style="margin-top:.75rem;color:rgb(255 255 255 / .62);max-width:24rem;font-size:.9375rem;">
+          Track doctors, patients, appointments and revenue – and grow from there.
+        </p>
+
+        <div style="margin-top:2rem;">
+          <div class="auth-feature">
+            <span class="auth-feature-icon">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            </span>
+            <span>
+              <strong>Doctor directory</strong>
+              <span>Search, filter and manage every specialist.</span>
+            </span>
+          </div>
+
+          <div class="auth-feature">
+            <span class="auth-feature-icon">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+            </span>
+            <span>
+              <strong>Appointment tracking</strong>
+              <span>Know exactly who is coming in today.</span>
+            </span>
+          </div>
+
+          <div class="auth-feature">
+            <span class="auth-feature-icon">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+            </span>
+            <span>
+              <strong>Revenue insights</strong>
+              <span>Live earnings and department performance.</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:.75rem;color:rgb(255 255 255 / .4);">
+        Built with HTML, CSS, JavaScript, Python &amp; SQLite3.
+      </p>
+    </aside>
+
+  </div>
+
+  <script src="js/icons.js?v=19"></script>
+  <script src="js/utils.js?v=19"></script>
+  <script src="js/api.js?v=19"></script>
+  <script src="js/theme.js?v=19"></script>
+  <script src="js/auth.js?v=19"></script>
+</body>
+</html>

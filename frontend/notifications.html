@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notifications · Doctor Application</title>
+  <meta name="description" content="Push notifications shown inside the mobile app, imported from the backup – title, type, description and banner image." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=19" />
+  <link rel="stylesheet" href="css/layout.css?v=19" />
+  <link rel="stylesheet" href="css/components.css?v=19" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <!-- Page heading -->
+              <div class="page-head">
+                <div>
+                  <h1>Notifications</h1>
+                  <p>Push notifications the mobile app users saw – the backup history stays read-only, and you can send a new one to the audience right here.</p>
+                </div>
+                <button type="button" class="btn" id="newNotifBtn">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M12 2v3"/><path d="M5 12h14"/></svg>
+                  New notification
+                </button>
+              </div>
+
+              <!-- Toolbar -->
+              <section class="card">
+                <div class="table-toolbar">
+                  <div class="table-toolbar-left">
+                    <div class="input-icon">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                      <input class="input" type="search" id="notifSearch" placeholder="Search title, description…" style="min-width:16rem;" />
+                    </div>
+                  </div>
+                  <div class="table-toolbar-right">
+                    <span class="text-sm text-muted" id="resultsInfo">Loading…</span>
+                  </div>
+                </div>
+
+                <!-- Notification cards -->
+                <div class="card-content">
+                  <div class="notif-grid" id="notifGrid"></div>
+                  <div class="editor-empty hidden" id="notifEmpty">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                    <span>No notification matches this filter.</span>
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ================= New notification modal ================= -->
+  <div class="nt-modal-backdrop hidden" id="notifModalBackdrop">
+    <div class="nt-modal" role="dialog" aria-modal="true" aria-labelledby="notifModalTitle">
+      <div class="nt-modal-head">
+        <div class="card-title" id="notifModalTitle">New notification</div>
+        <button type="button" class="nt-close" id="notifModalClose" aria-label="Close">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <form id="notifForm" novalidate>
+        <label class="nt-field">
+          <span>Title <em>*</em></span>
+          <input class="input" id="notifTitle" placeholder="e.g. New doctors added in Rawalpindi" maxlength="120" required />
+        </label>
+        <label class="nt-field">
+          <span>Description (optional)</span>
+          <textarea class="input" id="notifDesc" placeholder="What should users open the app for?" maxlength="400" rows="3"></textarea>
+        </label>
+        <div class="nt-row">
+          <label class="nt-field">
+            <span>Type</span>
+            <select class="input" id="notifType">
+              <option value="updated">updated</option>
+              <option value="created">created</option>
+              <option value="offer">offer</option>
+              <option value="alert">alert</option>
+              <option value="info">info</option>
+            </select>
+          </label>
+          <label class="nt-field">
+            <span>Banner image link (optional)</span>
+            <input class="input" id="notifImage" type="url" placeholder="https://…" />
+          </label>
+        </div>
+        <div class="nt-error hidden" id="notifFormError"></div>
+        <div class="nt-modal-actions">
+          <button type="button" class="btn btn-outline" id="notifModalCancel">Cancel</button>
+          <button type="submit" class="btn" id="notifSend">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.997 5.8a1.94 1.94 0 0 1-2.006 0L2 7"/><rect width="20" height="16" x="2" y="4" rx="2"/></svg>
+            Send notification
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .notif-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); gap: 1rem; }
+    .notif-card {
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: .5rem;
+    }
+    .notif-top { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+    .notif-top-side { display: flex; align-items: center; gap: .375rem; flex: none; }
+    .notif-type {
+      display: inline-flex; padding: .2rem .55rem; border-radius: 999px;
+      border: 1px solid var(--border); font-size: .75rem; color: var(--muted-foreground);
+      white-space: nowrap; text-transform: capitalize;
+    }
+    .notif-title { font-weight: 600; font-size: .9375rem; line-height: 1.35; word-break: break-word; }
+    .notif-desc { font-size: .875rem; color: var(--muted-foreground); line-height: 1.5; word-break: break-word; }
+    .notif-image { width: 100%; max-height: 8rem; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--border); }
+    .notif-date { font-size: .75rem; color: var(--muted-foreground); display: flex; align-items: center; gap: .375rem; margin-top: auto; }
+    .notif-date .icon { width: .75rem; height: .75rem; }
+
+    /* Panel-sent vs backup history chips + delete */
+    .notif-source {
+      display: inline-flex; align-items: center; gap: .25rem;
+      padding: .2rem .55rem; border-radius: 999px; font-size: .6875rem;
+      border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
+      background: color-mix(in oklab, var(--primary) 10%, transparent);
+      color: var(--primary); white-space: nowrap;
+    }
+    .notif-source .icon { width: .75rem; height: .75rem; }
+    .notif-card.is-panel { border-color: color-mix(in oklab, var(--primary) 30%, var(--border)); }
+    .notif-actions { position: relative; display: inline-flex; gap: .375rem; flex: none; }
+    .notif-delete {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 1.75rem; height: 1.75rem; border-radius: var(--radius-md);
+      border: 1px solid transparent; background: none; cursor: pointer;
+      color: var(--muted-foreground); transition: color .15s ease, border-color .15s ease, background .15s ease;
+      font-size: .6875rem; font-weight: 600; gap: .25rem; padding: 0;
+    }
+    .notif-delete:hover { color: var(--destructive); border-color: color-mix(in oklab, var(--destructive) 45%, transparent); background: color-mix(in oklab, var(--destructive) 8%, transparent); }
+    .notif-delete .icon { width: .875rem; height: .875rem; }
+    .notif-delete.is-confirm {
+      color: var(--destructive); border-color: color-mix(in oklab, var(--destructive) 55%, transparent);
+      background: color-mix(in oklab, var(--destructive) 10%, transparent); font-weight: 500;
+      width: auto; padding: 0 .5rem;
+    }
+
+    /* New-notification modal (mirrors the My Ads modal styling) */
+    .nt-modal-backdrop {
+      position: fixed; inset: 0; z-index: 90;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 4rem 1rem 2rem; overflow-y: auto;
+      background: rgb(0 0 0 / .45); backdrop-filter: blur(2px);
+      animation: ntIn .18s ease both;
+    }
+    .nt-modal-backdrop.hidden { display: none; }
+    .nt-modal {
+      width: min(32rem, 100%); background: var(--card); color: var(--foreground);
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      box-shadow: 0 24px 60px -24px rgb(0 0 0 / .45);
+      animation: ntPop .2s ease both;
+    }
+    .nt-modal-head {
+      display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+      padding: 1.125rem 1.25rem; border-bottom: 1px solid var(--border);
+    }
+    .nt-close {
+      border: 1px solid var(--border); background: transparent; border-radius: var(--radius-md);
+      width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted-foreground);
+    }
+    .nt-close:hover { color: var(--foreground); border-color: var(--ring); }
+    .nt-close .icon { width: 1rem; height: 1rem; }
+    .nt-modal form { padding: 1.25rem; display: flex; flex-direction: column; gap: .875rem; }
+    .nt-field { display: flex; flex-direction: column; gap: .35rem; min-width: 0; }
+    .nt-field > span { font-size: .8125rem; font-weight: 500; }
+    .nt-field em { color: var(--destructive); font-style: normal; }
+    .nt-field textarea { resize: vertical; }
+    .nt-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    .nt-error {
+      border: 1px solid color-mix(in oklab, var(--destructive) 45%, transparent);
+      background: color-mix(in oklab, var(--destructive) 8%, transparent);
+      color: var(--destructive); font-size: .8125rem;
+      border-radius: var(--radius-md); padding: .5rem .75rem;
+    }
+    .nt-modal-actions { display: flex; justify-content: flex-end; gap: .5rem; padding: 1rem 0 .25rem; border-top: 1px solid var(--border); }
+    @keyframes ntIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes ntPop { from { opacity: 0; transform: translateY(.5rem) scale(.98); } to { opacity: 1; transform: none; } }
+  </style>
+
+  <script src="js/icons.js?v=19"></script>
+  <script src="js/utils.js?v=19"></script>
+  <script src="js/api.js?v=19"></script>
+  <script src="js/theme.js?v=19"></script>
+  <script src="js/layout.js?v=19"></script>
+  <script src="js/notifications.js?v=19"></script>
+</body>
+</html>

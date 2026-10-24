@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctors · Doctor Application</title>
+  <meta name="description" content="Manage the doctors of your clinic – add, edit, search and filter." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=19" />
+  <link rel="stylesheet" href="css/layout.css?v=19" />
+  <link rel="stylesheet" href="css/components.css?v=19" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+          <!-- Page heading -->
+          <div class="page-head">
+            <div>
+              <h1>Doctors</h1>
+              <p>Manage the doctors working at your clinic – profile, fee, availability and status.</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+              <button type="button" class="btn btn-outline" id="exportDoctorsBtn">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Export
+              </button>
+              <button type="button" class="btn btn-primary" id="addDoctorBtn">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Add doctor
+              </button>
+            </div>
+          </div>
+
+          <!-- Table card -->
+          <section class="card">
+            <div class="table-toolbar">
+              <div class="table-toolbar-left">
+                <div class="input-icon">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <input class="input" type="search" id="doctorsSearch" placeholder="Search by name, email, hospital…" style="min-width:16rem;" />
+                </div>
+                <select class="select" id="specialtyFilter" aria-label="Filter by specialty" style="width:auto;min-width:11rem;">
+                  <option value="all">All specialties</option>
+                </select>
+                <select class="select" id="statusFilter" aria-label="Filter by status" style="width:auto;">
+                  <option value="all">All statuses</option>
+                  <option value="Active">Active</option>
+                  <option value="On Leave">On Leave</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+                <select class="select" id="hospitalFilter" aria-label="Filter by hospital" style="width:auto;min-width:11rem;">
+                  <option value="all">All hospitals</option>
+                </select>
+                <select class="select" id="cityFilter" aria-label="Filter by city" style="width:auto;min-width:9rem;">
+                  <option value="all">All cities</option>
+                </select>
+              </div>
+              <div class="table-toolbar-right">
+                <span class="text-sm text-muted" id="resultsInfo">Loading…</span>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th><button type="button" class="th-sort" data-sort="name">Doctor</button></th>
+                    <th><button type="button" class="th-sort" data-sort="specialty">Specialty</button></th>
+                    <th>Hospital</th>
+                    <th><button type="button" class="th-sort" data-sort="rating">Rating</button></th>
+                    <th><button type="button" class="th-sort" data-sort="consultation_fee">Fee</button></th>
+                    <th><button type="button" class="th-sort" data-sort="status">Status</button></th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="doctorsTableBody"></tbody>
+              </table>
+            </div>
+
+            <div class="pagination">
+              <span class="pagination-info" id="paginationInfo"></span>
+              <div class="pagination-controls" id="pagination"></div>
+            </div>
+          </section>
+
+        </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ======================= Add / edit modal ======================= -->
+  <div class="modal-backdrop" id="doctorModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="doctorModalTitle">
+      <div class="modal-header">
+        <div>
+          <h2 id="doctorModalTitle" style="font-size:1.0625rem;">Add new doctor</h2>
+          <p class="text-sm text-muted" style="margin-top:.25rem;">All fields marked with * are required.</p>
+        </div>
+        <button type="button" class="icon-btn icon-btn-sm" id="closeModalBtn" aria-label="Close">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="doctorForm">
+        <div class="modal-body">
+          <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;">
+            <div id="avatarPreview"></div>
+            <div>
+              <label class="btn btn-outline btn-sm" for="avatarInput" style="cursor:pointer;">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                Upload picture
+              </label>
+              <input type="file" id="avatarInput" accept="image/*" hidden />
+              <p class="hint" style="margin-top:.375rem;">PNG or JPG, max 5 MB. Stored locally now, Cloudinary later.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="f-name">Full name *</label>
+              <input class="input" id="f-name" name="name" type="text" placeholder="Dr. Ayesha Khan" required />
+            </div>
+            <div class="field">
+              <label for="f-email">Email *</label>
+              <input class="input" id="f-email" name="email" type="email" placeholder="name@clinic.com" required />
+            </div>
+            <div class="field">
+              <label for="f-phone">Phone</label>
+              <input class="input" id="f-phone" name="phone" type="tel" placeholder="+92 300 1234567" />
+            </div>
+            <div class="field">
+              <label for="f-specialty">Specialty *</label>
+              <input class="input" id="f-specialty" name="specialty" type="text" placeholder="Cardiology" required />
+            </div>
+            <div class="field">
+              <label for="f-qualification">Qualification</label>
+              <input class="input" id="f-qualification" name="qualification" type="text" placeholder="MBBS, FCPS" />
+            </div>
+            <div class="field">
+              <label for="f-experience">Experience (years)</label>
+              <input class="input" id="f-experience" name="experience_years" type="number" min="0" max="70" value="0" />
+            </div>
+            <div class="field">
+              <label for="f-hospital">Hospital / Clinic</label>
+              <input class="input" id="f-hospital" name="hospital" type="text" placeholder="Hameed Medical Complex" />
+            </div>
+            <div class="field">
+              <label for="f-city">City</label>
+              <input class="input" id="f-city" name="city" type="text" placeholder="Lahore" />
+            </div>
+            <div class="field">
+              <label for="f-country">Country</label>
+              <input class="input" id="f-country" name="country" type="text" value="Pakistan" />
+            </div>
+            <div class="field">
+              <label for="f-fee">Consultation fee (PKR)</label>
+              <input class="input" id="f-fee" name="consultation_fee" type="number" min="0" step="50" value="0" />
+            </div>
+            <div class="field">
+              <label for="f-rating">Rating (0 – 5)</label>
+              <input class="input" id="f-rating" name="rating" type="number" min="0" max="5" step="any" value="0" />
+            </div>
+            <div class="field">
+              <label for="f-status">Status</label>
+              <select class="select" id="f-status" name="status">
+                <option value="Active">Active</option>
+                <option value="On Leave">On Leave</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-gender">Gender</label>
+              <select class="select" id="f-gender" name="gender">
+                <option value="">Prefer not to say</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+                <option value="Rather Not Say">Rather Not Say</option>
+              </select>
+            </div>
+            <div class="field span-2">
+              <label for="f-bio">Short bio</label>
+              <textarea class="textarea" id="f-bio" name="bio" placeholder="A short introduction shown in the patient app."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="doctorModalSubmit">Add doctor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================= View doctor modal ======================= -->
+  <div class="modal-backdrop" id="viewModal">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:34rem;">
+      <div class="modal-header">
+        <h2 style="font-size:1.0625rem;">Doctor profile</h2>
+        <button type="button" class="icon-btn icon-btn-sm" id="closeViewBtn" aria-label="Close">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="viewModalBody"></div>
+    </div>
+  </div>
+
+  <!-- ======================= Delete confirm modal ======================= -->
+  <div class="modal-backdrop" id="confirmModal">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:26rem;">
+      <div class="modal-header">
+        <div>
+          <h2 style="font-size:1.0625rem;">Delete doctor</h2>
+          <p style="margin-top:.375rem;font-size:.8125rem;color:var(--muted-foreground);">
+            This will permanently remove <strong id="confirmDoctorName">this doctor</strong> and all of their
+            appointments. This action cannot be undone.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" id="cancelConfirmBtn">Cancel</button>
+        <button type="button" class="btn btn-destructive" id="confirmDeleteBtn">Delete doctor</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/icons.js?v=19"></script>
+  <script src="js/utils.js?v=19"></script>
+  <script src="js/api.js?v=19"></script>
+  <script src="js/theme.js?v=19"></script>
+  <script src="js/charts.js?v=19"></script>
+  <script src="js/layout.js?v=19"></script>
+  <script src="js/doctors.js?v=19"></script>
+</body>
+</html>
