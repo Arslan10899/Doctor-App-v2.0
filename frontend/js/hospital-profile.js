@@ -41,7 +41,7 @@ const HospitalProfile = (() => {
           <div style="display:flex;align-items:center;gap:.75rem;min-width:0;">
             ${Utils.avatar(d)}
             <div style="min-width:0;">
-              <a class="cell-strong link-cell" href="doctor-profile.html?v=27&id=${encodeURIComponent(d.id)}">${Utils.escape(d.name)}</a>
+              <a class="cell-strong link-cell" href="doctor-profile.html?v=31&id=${encodeURIComponent(d.id)}">${Utils.escape(d.name)}</a>
               <div class="cell-muted text-xs">${Utils.escape(d.email || '')}</div>
             </div>
           </div>
@@ -67,7 +67,7 @@ const HospitalProfile = (() => {
     const empty = !s.doctor_name || /no doctor/i.test(s.doctor_name);
     const doctorCell = empty
       ? `<span class="cell-muted">${Utils.escape(s.doctor_name || '—')}</span>`
-      : `<a class="link-cell" href="doctors.html?v=27&search=${encodeURIComponent(coreDoctorName(s.doctor_name))}"
+      : `<a class="link-cell" href="doctors.html?v=31&search=${encodeURIComponent(coreDoctorName(s.doctor_name))}"
              title="Find this doctor on the Doctors page">${Utils.escape(s.doctor_name)}</a>`;
 
     return `
@@ -155,10 +155,15 @@ const HospitalProfile = (() => {
     if (h.cover_image_url) {
       coverImg.src = h.cover_image_url;
       coverImg.style.display = '';
-      coverImg.onerror = () => { coverImg.style.display = 'none'; };
+      $('#hpCoverFallback').style.display = 'none';
+      coverImg.onerror = () => {
+        coverImg.style.display = 'none';
+        $('#hpCoverFallback').style.display = '';
+      };
     } else {
       coverImg.style.display = 'none';
       coverImg.removeAttribute('src');
+      $('#hpCoverFallback').style.display = '';
     }
 
     if (h.profile_image_url) {
@@ -199,6 +204,7 @@ const HospitalProfile = (() => {
         if (imgEl && url) {
           imgEl.src = url;
           imgEl.style.display = '';
+          if (kind === 'cover') $('#hpCoverFallback').style.display = 'none';
           if (kind === 'profile') $('#hpProfileFallback').style.display = 'none';
         }
         window.toast?.(kind === 'cover' ? 'Cover image updated.' : 'Profile image updated.', 'success');
