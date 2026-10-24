@@ -412,6 +412,9 @@ page verifies the token on load, so the dashboard never opens before sign-in.
 | `GET` | `/api/hospitals` | Distinct hospital names (used by the doctors filter) |
 | `GET` | `/api/hospitals/directory` | Hospital directory from the backup: name, Urdu name, city, doctor + slot counts, specialty chips |
 | `GET` | `/api/hospitals/{id}` | One hospital with its attached doctors (via the doctor↔hospital link table) and all duty slots; includes `profile_image_url` / `cover_image_url` |
+| `POST` | `/api/hospitals` | **Add hospital** from the panel (name required, Urdu name, city) – gets a stable `panel:` id so it survives backup re-imports; blocking duplicate names with 409 |
+| `PUT` | `/api/hospitals/{id}` | Edit hospital name / Urdu name / city |
+| `DELETE` | `/api/hospitals/{id}` | Delete a panel-added hospital (and its local cover/logo files, plus its city row if unused) – backup hospitals answer 403 |
 | `POST` | `/api/hospitals/{id}/profile-image` | Hospital logo / profile photo upload (multipart `file`, max 5 MB; stored in `hospital_media`, survives a re-import) |
 | `POST` | `/api/hospitals/{id}/cover-image` | Hospital cover / banner upload (multipart `file`, max 5 MB) – shown across the top of the profile page |
 | `GET` | `/api/cities` | Cities from the backup with hospital and doctor counts |

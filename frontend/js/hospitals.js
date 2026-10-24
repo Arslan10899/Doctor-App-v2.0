@@ -15,6 +15,82 @@ const Hospitals = (() => {
     return window.Icon ? window.Icon(name) : '';
   }
 
+  /* ------------------------- Add hospital modal ------------------------- */
+  function fillCityDatalist() {
+    const list = $('#fhCityList');
+    if (!list) return;
+    list.innerHTML = cities
+      .map((c) => `<option value="${Utils.escape(c.name)}"></option>`)
+      .join('');
+  }
+
+  function openHospitalModal() {
+    const modal = $('#hospitalModal');
+    if (!modal) return;
+    $('#hospitalForm')?.reset();
+    fillCityDatalist();
+    modal.classList.add('open');
+    $('#fh-name')?.focus();
+  }
+
+  function closeHospitalModal() {
+    $('#hospitalModal')?.classList.remove('open');
+  }
+
+  function wireHospitalModal() {
+    $('#addHospitalBtn')?.addEventListener('click', openHospitalModal);
+    $('#closeHospitalModalBtn')?.addEventListener('click', closeHospitalModal);
+    $('#cancelHospitalModalBtn')?.addEventListener('click', closeHospitalModal);
+
+    /* click on the dimmed backdrop closes the dialog */
+    $('#hospitalModal')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeHospitalModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && $('#hospitalModal')?.classList.contains('open')) {
+        closeHospitalModal();
+      }
+    });
+
+    $('#hospitalForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const els = form.elements;
+      const submit = $('#hospitalModalSubmit');
+      const payload = {
+        name: els.name.value.trim(),
+        urdu_name: els.urdu_name.value.trim() || null,
+        city: els.city.value.trim() || null,
+      };
+      if (!payload.name || payload.name.length < 2) return;
+
+      submit.disabled = true;
+      const original = submit.textContent;
+      submit.textContent = 'Saving…';
+      try {
+        const created = await Api.post('/hospitals', payload);
+        closeHospitalModal();
+        window.toast?.(`Hospital "${created.name}" added.`, 'success');
+        /* refresh list + city strip so the new hospital shows right away */
+        const [directory, cityList] = await Promise.all([
+          Api.get('/hospitals/directory'),
+          Api.get('/cities'),
+        ]);
+        all = directory || [];
+        cities = cityList || [];
+        activeCity = payload.city || 'all';
+        renderCities();
+        render();
+      } catch (err) {
+        window.toast?.(err.message || 'Could not add hospital.', 'error');
+      } finally {
+        submit.disabled = false;
+        submit.textContent = original;
+      }
+    });
+  }
+
   function renderCities() {
     const strip = $('#citiesStrip');
     if (!strip) return;
@@ -52,7 +128,7 @@ const Hospitals = (() => {
   function card(h) {
     /* Every card (and each metric inside it) now opens the hospital's own
        profile page – #doctors / #slots anchors scroll straight to the section. */
-    const profile = `hospital-profile.html?v=26&id=${encodeURIComponent(h.id)}`;
+    const profile = `hospital-profile.html?v=28&id=${encodeURIComponent(h.id)}`;
     const specialties = Array.isArray(h.specialties) ? h.specialties.slice(0, 3) : [];
     const moreSpecialties = (h.specialties || []).length - specialties.length;
 
@@ -100,7 +176,7 @@ const Hospitals = (() => {
 
         <div class="hosp-foot">
           <span class="hosp-view">View hospital ${icon('arrow-right')}</span>
-          <span class="hosp-foot-note">From the backup</span>
+          <span class="hosp-foot-note">${h.origin === 'panel' ? 'Added from panel' : 'From the backup'}</span>
         </div>
       </article>
     `;
@@ -157,6 +233,8 @@ const Hospitals = (() => {
       activeCity = e.target.value;
       render();
     });
+
+    wireHospitalModal();
   }
 
   return { init };

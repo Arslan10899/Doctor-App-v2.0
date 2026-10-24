@@ -9,9 +9,9 @@
   <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
   <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
 
-  <link rel="stylesheet" href="css/theme.css?v=26" />
-  <link rel="stylesheet" href="css/layout.css?v=26" />
-  <link rel="stylesheet" href="css/components.css?v=26" />
+  <link rel="stylesheet" href="css/theme.css?v=28" />
+  <link rel="stylesheet" href="css/layout.css?v=28" />
+  <link rel="stylesheet" href="css/components.css?v=28" />
 
   <script>
     (function () {
@@ -49,6 +49,10 @@
                   <h1>Hospitals</h1>
                   <p>Hospital directory imported from the local backup – click a hospital to open its full view with attached doctors and OPD/OT duty slots.</p>
                 </div>
+                <button type="button" class="btn btn-primary" id="addHospitalBtn">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                  Add hospital
+                </button>
               </div>
 
               <!-- Cities strip -->
@@ -89,6 +93,48 @@
   </div>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ======================= Add hospital modal ======================= -->
+  <div class="modal-backdrop" id="hospitalModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="hospitalModalTitle" style="max-width:32rem;">
+      <div class="modal-header">
+        <div>
+          <h2 id="hospitalModalTitle" style="font-size:1.0625rem;">Add hospital</h2>
+          <p class="text-sm text-muted" style="margin-top:.25rem;">Add a new hospital to the directory alongside the imported ones.</p>
+        </div>
+        <button type="button" class="icon-btn icon-btn-sm" id="closeHospitalModalBtn" aria-label="Close">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="hospitalForm">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field span-2">
+              <label for="fh-name">Hospital name (English) *</label>
+              <input class="input" id="fh-name" name="name" type="text" placeholder="e.g. King Teaching Hospital" required minlength="2" maxlength="160" />
+            </div>
+            <div class="field span-2">
+              <label for="fh-urdu">Urdu name</label>
+              <input class="input" id="fh-urdu" name="urdu_name" type="text" dir="rtl" placeholder="مثلاً کنگ ٹیچنگ اسپتال" maxlength="160" />
+            </div>
+            <div class="field span-2">
+              <label for="fh-city">City</label>
+              <input class="input" id="fh-city" name="city" type="text" list="fhCityList" placeholder="e.g. Lahore" maxlength="80" />
+              <datalist id="fhCityList"></datalist>
+              <p class="hint" style="margin-top:.375rem;">Pick an existing city from the list or type a new one.</p>
+            </div>
+          </div>
+          <p class="text-xs text-muted" style="margin-top:1rem;">The hospital is created with empty doctor &amp; duty-slot stats – you can upload its brand cover / profile images from its profile page later.</p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelHospitalModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="hospitalModalSubmit">Save hospital</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <style>
     .hosp-cities { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
@@ -162,11 +208,11 @@
     a.hosp-metric { color: inherit; }
   </style>
 
-  <script src="js/icons.js?v=26"></script>
-  <script src="js/utils.js?v=26"></script>
-  <script src="js/api.js?v=26"></script>
-  <script src="js/theme.js?v=26"></script>
-  <script src="js/layout.js?v=26"></script>
-  <script src="js/hospitals.js?v=26"></script>
+  <script src="js/icons.js?v=28"></script>
+  <script src="js/utils.js?v=28"></script>
+  <script src="js/api.js?v=28"></script>
+  <script src="js/theme.js?v=28"></script>
+  <script src="js/layout.js?v=28"></script>
+  <script src="js/hospitals.js?v=28"></script>
 </body>
 </html>

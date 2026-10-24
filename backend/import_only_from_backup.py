@@ -106,9 +106,16 @@ def main():
     cur.execute("DELETE FROM doctors")
     cur.execute("DELETE FROM departments")
     cur.execute("DELETE FROM hospital_schedules")
-    cur.execute("DELETE FROM hospitals")
+    # panel-created hospitals (source_id 'panel:<hex>') are the admin's own
+    # data – keep them; only the backup's copies are cleared out first
+    cur.execute("DELETE FROM hospitals WHERE source_id IS NULL OR source_id NOT LIKE 'panel:%'")
     cur.execute("DELETE FROM cities")
     cur.execute("DELETE FROM app_users")
+    # restore the city rows referenced by surviving panel hospitals
+    cur.execute(
+        "INSERT OR IGNORE INTO cities (name) "
+        "SELECT DISTINCT city FROM hospitals WHERE city IS NOT NULL AND city <> '' AND source_id LIKE 'panel:%'"
+    )
     # backup's push history is wiped, but notifications sent from the
     # admin panel (origin='panel') are the admin's own data – keep them
     cur.execute("DELETE FROM notifications WHERE origin IS NULL OR origin <> 'panel'")

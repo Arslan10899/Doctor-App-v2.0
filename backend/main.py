@@ -20,6 +20,7 @@ import os
 import re
 import secrets
 import sys
+import uuid
 from datetime import date, datetime, timedelta
 from typing import Any, Optional
 
@@ -837,6 +838,7 @@ def hospitals_directory(user: dict[str, Any] = Depends(current_user)) -> list[di
     rows = db.query_all(
         """
         SELECT h.id, h.name, h.urdu_name, h.city, h.doctor_count,
+               CASE WHEN h.source_id LIKE 'panel:%' THEN 'panel' ELSE 'backup' END AS origin,
                (SELECT COUNT(*) FROM hospital_schedules s WHERE s.hospital_id = h.id) AS schedules
         FROM hospitals h
         ORDER BY h.name ASC
@@ -861,6 +863,111 @@ def hospitals_directory(user: dict[str, Any] = Depends(current_user)) -> list[di
     for row in rows:
         row["specialties"] = sorted(specs_by_hospital.get(row["id"], set()))
     return rows
+
+
+@app.post("/api/hospitals", status_code=201)
+def create_hospital(payload: schemas.HospitalCreate, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    """Add a hospital from the panel (in addition to the imported directory)."""
+    existing = db.query_one(
+        "SELECT id FROM hospitals WHERE LOWER(name) = LOWER(?)", (payload.name,)
+    )
+    if existing:
+        raise HTTPException(status_code=409, detail="A hospital with this name already exists")
+
+    hospital_id = db.execute(
+        "INSERT INTO hospitals (source_id, name, urdu_name, city, doctor_count) VALUES (?, ?, ?, ?, 0)",
+        ("panel:" + uuid.uuid4().hex, payload.name, payload.urdu_name or None, payload.city or None),
+    )
+    # Keep the city filter working when the panel adds a brand-new city.
+    if payload.city:
+        db.execute("INSERT OR IGNORE INTO cities (name) VALUES (?)", (payload.city,))
+    return _hospital_payload(hospital_id)
+
+
+@app.put("/api/hospitals/{hospital_id}")
+def update_hospital(
+    hospital_id: int,
+    payload: schemas.HospitalUpdate,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    existing = db.query_one("SELECT id, name, city FROM hospitals WHERE id = ?", (hospital_id,))
+    if not existing:
+        raise HTTPException(status_code=404, detail="Hospital not found")
+
+    data = payload.model_dump(exclude_unset=True)
+    if "name" in data:
+        clash = db.query_one(
+            "SELECT id FROM hospitals WHERE id <> ? AND LOWER(name) = LOWER(?)",
+            (hospital_id, data["name"]),
+        )
+        if clash:
+            raise HTTPException(status_code=409, detail="A hospital with this name already exists")
+
+    if data.get("city") and data["city"] != existing["city"]:
+        db.execute("INSERT OR IGNORE INTO cities (name) VALUES (?)", (data["city"],))
+    data_to_set = {k: v or None for k, v in data.items()}
+    if data_to_set:
+        assignments = ", ".join(f"{key} = ?" for key in data_to_set)
+        db.execute(f"UPDATE hospitals SET {assignments} WHERE id = ?", (*data_to_set.values(), hospital_id))
+    return _hospital_payload(hospital_id)
+
+
+@app.delete("/api/hospitals/{hospital_id}")
+def delete_hospital(hospital_id: int, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    """Only panel-added hospitals can be removed – backup rows stay read-only."""
+    existing = db.query_one("SELECT id, source_id, name FROM hospitals WHERE id = ?", (hospital_id,))
+    if not existing:
+        raise HTTPException(status_code=404, detail="Hospital not found")
+    if not existing["source_id"] or str(existing["source_id"]).startswith("panel:"):
+        pass  # panel-added hospital – allowed
+    else:
+        raise HTTPException(
+            status_code=403,
+            detail="Backup hospitals are read-only here – delete them from the backup data instead",
+        )
+    # remove the hospital's local-disk images (cover / profile) if any
+    media = db.query_one(
+        "SELECT profile_url, cover_url FROM hospital_media WHERE source_id = ?",
+        (existing["source_id"] or f"panel:{hospital_id}",),
+    )
+    if media:
+        for url in (media["profile_url"], media["cover_url"]):
+            if url and url.startswith("/uploads/"):
+                path = os.path.join(config.UPLOAD_DIR, url.removeprefix("/uploads/"))
+                try:
+                    if os.path.isfile(path):
+                        os.remove(path)
+                except OSError:
+                    pass
+    db.execute("DELETE FROM hospital_media WHERE source_id = ?", (existing["source_id"] or f"panel:{hospital_id}",))
+    db.execute("DELETE FROM hospitals WHERE id = ?", (hospital_id,))
+    return {"message": f"Hospital '{existing['name']}' deleted"}
+
+
+def _hospital_payload(hospital_id: int) -> dict[str, Any]:
+    hospital = db.query_one(
+        """SELECT h.id, h.name, h.urdu_name, h.city, h.doctor_count,
+                  (SELECT COUNT(*) FROM hospital_schedules s WHERE s.hospital_id = h.id) AS schedules,
+                  m.profile_url AS profile_image_url,
+                  m.cover_url AS cover_image_url
+           FROM hospitals h
+           LEFT JOIN hospital_media m ON m.source_id = h.source_id
+           WHERE h.id = ?""",
+        (hospital_id,),
+    )
+    schedule_count = int(hospital["schedules"] or 0)
+    return {
+        "id": int(hospital["id"]),
+        "name": hospital["name"],
+        "urdu_name": hospital["urdu_name"],
+        "city": hospital["city"],
+        "doctor_count": int(hospital["doctor_count"] or 0),
+        "schedules": schedule_count,
+        "specialties": [],
+        "profile_image_url": hospital["profile_image_url"],
+        "cover_image_url": hospital["cover_image_url"],
+        "origin": "panel",
+    }
 
 
 @app.get("/api/cities")

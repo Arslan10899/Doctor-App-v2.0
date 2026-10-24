@@ -177,6 +177,31 @@ class DoctorListResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Hospitals (panel-created entries on top of the imported directory)
+# ---------------------------------------------------------------------------
+class HospitalCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=160)
+    urdu_name: Optional[str] = None
+    city: Optional[str] = None
+
+    @field_validator("name", "urdu_name", "city", mode="before")
+    @classmethod
+    def _strip(cls, v: Any) -> Any:
+        return v.strip() if isinstance(v, str) else v
+
+
+class HospitalUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=2, max_length=160)
+    urdu_name: Optional[str] = None
+    city: Optional[str] = None
+
+    @field_validator("name", "urdu_name", "city", mode="before")
+    @classmethod
+    def _strip(cls, v: Any) -> Any:
+        return v.strip() if isinstance(v, str) else v
+
+
+# ---------------------------------------------------------------------------
 # Appointments / patients
 # ---------------------------------------------------------------------------
 class PatientCreate(BaseModel):
