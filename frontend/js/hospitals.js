@@ -128,15 +128,19 @@ const Hospitals = (() => {
   function card(h) {
     /* Every card (and each metric inside it) now opens the hospital's own
        profile page – #doctors / #slots anchors scroll straight to the section. */
-    const profile = `hospital-profile.html?v=28&id=${encodeURIComponent(h.id)}`;
+    const profile = `hospital-profile.html?v=29&id=${encodeURIComponent(h.id)}`;
     const specialties = Array.isArray(h.specialties) ? h.specialties.slice(0, 3) : [];
     const moreSpecialties = (h.specialties || []).length - specialties.length;
 
     return `
       <article class="hosp-card" data-id="${h.id}" tabindex="0" role="link"
                data-href="${profile}" aria-label="Open hospital ${Utils.escape(h.name || '')}">
+        <div class="hosp-card-cover">
+          <div class="hosp-card-cover-fallback" aria-hidden="true"></div>
+          ${h.cover_image_url ? `<img class="hosp-card-cover-img" src="${h.cover_image_url}" alt="" loading="lazy" />` : ''}
+        </div>
         <div class="hosp-card-top">
-          <div class="hosp-tile">${icon('building')}</div>
+          <div class="hosp-tile">${h.profile_image_url ? `<img class="hosp-card-logo" src="${h.profile_image_url}" alt="" loading="lazy" />` : icon('building')}</div>
           <div class="hosp-card-head">
             <div class="hosp-name">${Utils.escape(h.name || '—')}</div>
             ${h.urdu_name ? `<div class="hosp-name-urdu">${Utils.escape(h.urdu_name)}</div>` : ''}

@@ -839,8 +839,11 @@ def hospitals_directory(user: dict[str, Any] = Depends(current_user)) -> list[di
         """
         SELECT h.id, h.name, h.urdu_name, h.city, h.doctor_count,
                CASE WHEN h.source_id LIKE 'panel:%' THEN 'panel' ELSE 'backup' END AS origin,
+               m.profile_url AS profile_image_url,
+               m.cover_url AS cover_image_url,
                (SELECT COUNT(*) FROM hospital_schedules s WHERE s.hospital_id = h.id) AS schedules
         FROM hospitals h
+        LEFT JOIN hospital_media m ON m.source_id = h.source_id
         ORDER BY h.name ASC
         """
     )
