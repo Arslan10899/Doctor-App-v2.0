@@ -394,11 +394,11 @@
 
     state.id = id;
     const cancel = $('#cancelEdit');
-    if (cancel) cancel.href = `doctor-profile.html?v=24&id=${id}`;
+    if (cancel) cancel.href = `doctor-profile.html?v=26&id=${id}`;
     const viewProfile = $('#viewProfile');
-    if (viewProfile) viewProfile.href = `doctor-profile.html?v=24&id=${id}`;
+    if (viewProfile) viewProfile.href = `doctor-profile.html?v=26&id=${id}`;
     const cancelBottom = $('#cancelEditBottom');
-    if (cancelBottom) cancelBottom.href = `doctor-profile.html?v=24&id=${id}`;
+    if (cancelBottom) cancelBottom.href = `doctor-profile.html?v=26&id=${id}`;
 
     try {
       const doctor = await Api.getDoctor(id);
@@ -560,7 +560,7 @@
       toast(`${doctor.name} updated successfully.`, 'success');
 
       setTimeout(() => {
-        window.location.href = `doctor-profile.html?v=24&id=${encodeURIComponent(doctor.id)}`;
+        window.location.href = `doctor-profile.html?v=26&id=${encodeURIComponent(doctor.id)}`;
       }, 600);
     } catch (err) {
       toast(err.message, 'error');

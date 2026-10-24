@@ -41,7 +41,7 @@ const HospitalProfile = (() => {
           <div style="display:flex;align-items:center;gap:.75rem;min-width:0;">
             ${Utils.avatar(d)}
             <div style="min-width:0;">
-              <a class="cell-strong link-cell" href="doctor-profile.html?v=24&id=${encodeURIComponent(d.id)}">${Utils.escape(d.name)}</a>
+              <a class="cell-strong link-cell" href="doctor-profile.html?v=26&id=${encodeURIComponent(d.id)}">${Utils.escape(d.name)}</a>
               <div class="cell-muted text-xs">${Utils.escape(d.email || '')}</div>
             </div>
           </div>
@@ -67,7 +67,7 @@ const HospitalProfile = (() => {
     const empty = !s.doctor_name || /no doctor/i.test(s.doctor_name);
     const doctorCell = empty
       ? `<span class="cell-muted">${Utils.escape(s.doctor_name || '—')}</span>`
-      : `<a class="link-cell" href="doctors.html?v=24&search=${encodeURIComponent(coreDoctorName(s.doctor_name))}"
+      : `<a class="link-cell" href="doctors.html?v=26&search=${encodeURIComponent(coreDoctorName(s.doctor_name))}"
              title="Find this doctor on the Doctors page">${Utils.escape(s.doctor_name)}</a>`;
 
     return `
@@ -78,6 +78,73 @@ const HospitalProfile = (() => {
         <td>${Utils.escape(s.start_time || '')} – ${Utils.escape(s.end_time || '')}</td>
       </tr>
     `;
+  }
+
+  /* "Doctors at this hospital": show the top 3 by default, reveal the rest
+     with a staggered fade-in when the user presses "Show all". */
+  const DOCTORS_TOP_N = 3;
+  let doctorsExpanded = false;
+  let doctorsRowCache = [];
+
+  function doctorRows(rows, offset = 0) {
+    return rows
+      .map((d, i) => {
+        const html = doctorRow(d);
+        /* stagger only the newly revealed extras */
+        return offset
+          ? html.replace('<tr>', `<tr style="animation-delay:${Math.min(i * 0.035, 0.5)}s;">`)
+          : html;
+      })
+      .join('');
+  }
+
+  function updateDoctorsNote(total) {
+    const note = $('#hpDoctorsNote');
+    if (!note) return;
+    note.textContent =
+      total > 0
+        ? doctorsExpanded
+          ? `All ${total} doctor record${total === 1 ? '' : 's'} matched from the backup clinic addresses.`
+          : `Showing the top ${Math.min(DOCTORS_TOP_N, total)} of ${total} doctor record${total === 1 ? '' : 's'} from the backup – press "Show all" for the complete list.`
+        : 'Doctors whose clinic address references this hospital.';
+  }
+
+  function renderDoctors(rows) {
+    const body = $('#hpDoctorsBody');
+    const extra = $('#hpDoctorsExtra');
+    const foot = $('#hpDoctorsFoot');
+    if (!body) return;
+
+    const top = doctorsExpanded ? rows : rows.slice(0, DOCTORS_TOP_N);
+    const rest = doctorsExpanded ? [] : rows.slice(DOCTORS_TOP_N);
+
+    body.innerHTML = doctorRows(top);
+    if (extra) {
+      extra.innerHTML = rest.length ? doctorRows(rest, 1) : '';
+      extra.hidden = rest.length > 0 && !doctorsExpanded;
+    }
+    updateDoctorsNote(rows.length);
+
+    if (!foot) return;
+    foot.querySelectorAll('.hp-show-more').forEach((el) => el.remove());
+    if (rows.length <= DOCTORS_TOP_N) {
+      foot.hidden = true;
+      return;
+    }
+    foot.hidden = false;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'hp-show-more';
+    if (doctorsExpanded) btn.classList.add('is-open');
+    btn.setAttribute('aria-expanded', String(doctorsExpanded));
+    btn.innerHTML = doctorsExpanded
+      ? `${icon('chevron-down')} Show top ${DOCTORS_TOP_N}`
+      : `Show all <span class="hp-count">${Utils.number(rows.length)}</span> ${icon('chevron-down')}`;
+    btn.addEventListener('click', () => {
+      doctorsExpanded = !doctorsExpanded;
+      renderDoctors(doctorsRowCache);
+    });
+    foot.appendChild(btn);
   }
 
   function render(data) {
@@ -100,13 +167,11 @@ const HospitalProfile = (() => {
       statCard('Specialties', Utils.number((h.specialties || []).length), 'stethoscope') +
       statCard('City', Utils.escape(h.city || '—'), 'map-pin', 'font-size:1rem;');
 
-    const rows = data.doctors;
-    $('#hpDoctorsBody').innerHTML = rows.map(doctorRow).join('');
-    $('#hpDoctorsEmpty').classList.toggle('hidden', rows.length > 0);
-    $('#hpDoctorsNote').textContent =
-      rows.length > 0
-        ? `${rows.length} doctor record${rows.length === 1 ? '' : 's'} matched from the backup clinic addresses.`
-        : 'Doctors whose clinic address references this hospital.';
+      const rows = data.doctors;
+      doctorsRowCache = rows;
+      renderDoctors(rows);
+      $('#hpDoctorsEmpty').classList.toggle('hidden', rows.length > 0);
+      updateDoctorsNote(rows.length);
 
     const slots = data.schedules;
     $('#hpSlotsBody').innerHTML = slots.map(slotRow).join('');
