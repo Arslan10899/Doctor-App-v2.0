@@ -37,6 +37,8 @@ const Dashboard = (() => {
     const host = document.getElementById('statGrid');
     if (!host) return;
 
+    const tablesIn = stats.storage?.tables || {};
+
     const cards = [
       statCard({
         label: 'Total Doctors',
@@ -45,7 +47,7 @@ const Dashboard = (() => {
         accent: 'azure',
         pill: `${Utils.number(stats.active_doctors)} active`,
         pillTone: 'up',
-        foot: `Across ${Utils.number(stats.total_cities)} cities`,
+        foot: `~${formatBytes(tablesIn.doctors || 0)} in database · ${Utils.number(stats.total_cities)} cities`,
       }),
       statCard({
         label: 'Total Patients',
@@ -346,15 +348,21 @@ const Dashboard = (() => {
 
     const host = document.getElementById('storageLines');
     if (!host) return;
+    const t = s.tables || {};
     const rows = [
-      [`Doctors`, `${Utils.number(stats.total_doctors)} (${Utils.number(stats.active_doctors)} active, ${Utils.number(stats.new_doctors_this_month)} new this month)`],
-      [`Hospitals & cities`, `${Utils.number(stats.total_hospitals)} hospitals in ${Utils.number(stats.total_cities)} cities`],
-      [`Duty slots`, Utils.number(stats.total_duty_slots)],
-      [`App users`, `${Utils.number(stats.total_app_users)} (${Utils.number(stats.registered_app_users)} registered)`],
-      [`Notifications`, `${Utils.number(stats.total_notifications)} (${Utils.number(stats.total_backup_promos)} backup promos)`],
-      [`My Ads`, `${Utils.number(stats.total_my_ads)} (${Utils.number(stats.active_my_ads)} active)`],
+      [`Doctors`, `${Utils.number(stats.total_doctors)} records · ~${formatBytes(t.doctors || 0)} in DB`],
+      [`Hospitals`, `${Utils.number(stats.total_hospitals)} in ${Utils.number(stats.total_cities)} cities · ~${formatBytes(t.hospitals || 0)}`],
+      [`Duty slots`, `${Utils.number(stats.total_duty_slots)} · ~${formatBytes(t.hospital_schedules || 0)}`],
+      [`App users`, `${Utils.number(stats.total_app_users)} (${Utils.number(stats.registered_app_users)} registered) · ~${formatBytes(t.app_users || 0)}`],
+      [`Notifications`, `${Utils.number(stats.total_notifications)} (${Utils.number(stats.total_backup_promos)} backup promos) · ~${formatBytes(t.notifications || 0)}`],
+      [`My Ads`, `${Utils.number(stats.total_my_ads)} (${Utils.number(stats.active_my_ads)} active) · ~${formatBytes(t.my_ads || 0)}`],
     ];
-    host.innerHTML = rows.map(([label, value]) => badge(label, value)).join('');
+    host.innerHTML = rows
+      .map(([label, value]) => badge(label, value))
+      .join('') + `
+      <div class="text-xs text-muted" style="padding:0 .25rem;">
+        Table sizes are estimates (column payload + row overhead) — the full database file is ${formatBytes(s.db_bytes)}.
+      </div>`;
   }
   /* ---------------------------------------------------------------------
    * Loader

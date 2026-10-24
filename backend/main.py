@@ -391,6 +391,34 @@ def dashboard_stats(user: dict[str, Any] = Depends(current_user)) -> dict[str, A
     db_base = file_bytes(config.DB_PATH)
     db_wal = file_bytes(config.DB_PATH + "-wal") + file_bytes(config.DB_PATH + "-shm")
     uploads_bytes, uploads_files = dir_usage(config.UPLOAD_DIR)
+
+    def table_usage(table: str) -> int:
+        """Rough on-disk size of one table (payload + per-row overhead).
+
+        The shipped SQLite build has no dbstat virtual table, so this is
+        an estimate: sum of all column bytes + 10 B/cell header + 18 %
+        padding for free pages and index entries."""
+        cols = [r["name"] for r in db.query_all(f'PRAGMA table_info("{table}")')]
+        if not cols:
+            return 0
+        payload_expr = " + ".join(f'IFNULL(length(CAST("{c}" AS BLOB)), 0)' for c in cols)
+        payload = int(scalar(f'SELECT COALESCE(SUM({payload_expr}), 0) v FROM "{table}"'))
+        row_count = int(scalar(f'SELECT COUNT(*) v FROM "{table}"'))
+        return int(payload * 1.18) + row_count * 10
+
+    tables_usage = {
+        name: table_usage(name)
+        for name in (
+            "doctors",
+            "hospitals",
+            "hospital_schedules",
+            "app_users",
+            "notifications",
+            "my_ads",
+            "backup_promos",
+        )
+    }
+
     storage = {
         "db_file": os.path.basename(config.DB_PATH),
         "db_bytes": db_base + db_wal,
@@ -399,6 +427,7 @@ def dashboard_stats(user: dict[str, Any] = Depends(current_user)) -> dict[str, A
         "uploads_bytes": uploads_bytes,
         "uploads_files": uploads_files,
         "total_bytes": db_base + db_wal + uploads_bytes,
+        "tables": tables_usage,
     }
 
     return {
