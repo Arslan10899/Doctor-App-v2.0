@@ -10,16 +10,16 @@ const NAV_SECTIONS = [
   {
     heading: 'Dashboard',
     items: [
-      { label: 'Overview', icon: 'layout-dashboard', href: 'index.html?v=19' },
+      { label: 'Overview', icon: 'layout-dashboard', href: 'index.html?v=21' },
       { label: 'Analytics', icon: 'bar-chart-3', module: 'Analytics' },
     ],
   },
   {
     heading: 'Management',
     items: [
-      { label: 'Doctors', icon: 'stethoscope', href: 'doctors.html?v=19', badge: 'doctors' },
-      { label: 'Hospitals', icon: 'building', href: 'hospitals.html?v=19', badge: 'hospitals' },
-      { label: 'Appointments', icon: 'calendar-days', href: 'appointments.html?v=19', badge: 'duty_slots' },
+      { label: 'Doctors', icon: 'stethoscope', href: 'doctors.html?v=21', badge: 'doctors' },
+      { label: 'Hospitals', icon: 'building', href: 'hospitals.html?v=21', badge: 'hospitals' },
+      { label: 'Appointments', icon: 'calendar-days', href: 'appointments.html?v=21', badge: 'duty_slots' },
       { label: 'Patients', icon: 'users', module: 'Patients', badge: 'patients' },
       { label: 'Payments', icon: 'wallet', module: 'Payments' },
     ],
@@ -27,22 +27,22 @@ const NAV_SECTIONS = [
   {
     heading: 'Mobile App',
     items: [
-      { label: 'App Users', icon: 'smartphone', href: 'app-users.html?v=19', badge: 'app_users' },
-      { label: 'Notifications', icon: 'bell', href: 'notifications.html?v=19', badge: 'notifications' },
-      { label: 'My Ads', icon: 'megaphone', href: 'my-ads.html?v=19', badge: 'my_ads' },
+      { label: 'App Users', icon: 'smartphone', href: 'app-users.html?v=21', badge: 'app_users' },
+      { label: 'Notifications', icon: 'bell', href: 'notifications.html?v=21', badge: 'notifications' },
+      { label: 'My Ads', icon: 'megaphone', href: 'my-ads.html?v=21', badge: 'my_ads' },
     ],
   },
   {
     heading: 'Clinic',
     items: [
-      { label: 'Specialties', icon: 'sparkles', href: 'specialties.html?v=19' },
+      { label: 'Specialties', icon: 'sparkles', href: 'specialties.html?v=21' },
       { label: 'Departments', icon: 'building-2', module: 'Departments' },
     ],
   },
   {
     heading: 'System',
     items: [
-      { label: 'Settings', icon: 'settings', href: 'account.html?v=19' },
+      { label: 'Settings', icon: 'settings', href: 'account.html?v=21' },
       { label: 'Help Center', icon: 'help-circle', module: 'Help Center' },
     ],
   },
@@ -50,8 +50,8 @@ const NAV_SECTIONS = [
 
 /* Primary navigation shown in the header (desktop). */
 const HEADER_NAV = [
-  { label: 'Overview', href: 'index.html?v=19' },
-  { label: 'Doctors', href: 'doctors.html?v=19' },
+  { label: 'Overview', href: 'index.html?v=21' },
+  { label: 'Doctors', href: 'doctors.html?v=21' },
   { label: 'Patients', module: 'Patients' },
   { label: 'Appointments', module: 'Appointments' },
   { label: 'Payments', module: 'Payments' },
@@ -71,7 +71,7 @@ const Layout = (() => {
 
   function isActive(href) {
     if (!href) return false;
-    /* Versioned links (doctors.html?v=19) share the pathname with plain ones. */
+    /* Versioned links (doctors.html?v=21) share the pathname with plain ones. */
     return currentPage() === String(href).split('?')[0];
   }
 
@@ -127,13 +127,7 @@ const Layout = (() => {
       </div>`;
     }).join('');
 
-    const profile = user();
-
     host.innerHTML = `
-      <button type="button" class="sidebar-collapse" id="sidebarCollapse" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar">
-        ${window.Icon('chevrons-left')}
-      </button>
-
       <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close menu">
         ${window.Icon('x-circle')}
       </button>
@@ -142,19 +136,10 @@ const Layout = (() => {
         <nav class="sidebar-nav" aria-label="Main navigation">${nav}</nav>
       </div>
 
-      <div class="sidebar-footer">
-        <div class="sidebar-promo">
-          <strong>Doctor Application</strong>
-          <span>Clinic manager · v1.0.0</span>
-        </div>
-
-        <button type="button" class="sidebar-user" id="sidebarUser" aria-label="Account">
-          ${Utils.avatar(profile, 'avatar-sm')}
-          <span class="sidebar-user-meta">
-            <strong>${Utils.escape(profile.name || 'Admin')}</strong>
-            <span>${Utils.escape(profile.email || '')}</span>
-          </span>
-          ${window.Icon('chevron-down', 'sidebar-user-chevron')}
+      <div class="sidebar-foot">
+        <button type="button" class="sidebar-collapse-btn" id="sidebarCollapse" aria-expanded="true" aria-label="Collapse sidebar">
+          ${window.Icon('chevrons-left', 'sidebar-collapse-icon')}
+          <span class="sidebar-collapse-label">Collapse</span>
         </button>
       </div>
     `;
@@ -164,13 +149,6 @@ const Layout = (() => {
         toast(`“${button.dataset.module}” module is coming soon.`, 'info');
       });
     });
-
-    const sidebarUser = host.querySelector('#sidebarUser');
-    if (sidebarUser) {
-      sidebarUser.addEventListener('click', () => {
-        window.location.href = 'account.html?v=19';
-      });
-    }
 
     const collapseBtn = host.querySelector('#sidebarCollapse');
     if (collapseBtn) {
@@ -211,7 +189,7 @@ const Layout = (() => {
           <span>Menu</span>
         </button>
 
-        <a class="header-brand" href="index.html?v=19">
+        <a class="header-brand" href="index.html?v=21">
           <img class="brand-mark" src="assets/app-icon-64.png?v=18" alt="Doctor App" />
           <span class="header-brand-name">Doctor App</span>
         </a>
@@ -253,8 +231,8 @@ const Layout = (() => {
             </button>
             <div class="dropdown-menu">
               <div class="dropdown-label">${Utils.escape(profile.email || '')}</div>
-              <a class="dropdown-item" href="account.html?v=19">${window.Icon('user-round')} Profile</a>
-              <a class="dropdown-item" href="account.html?v=19">${window.Icon('settings')} Settings</a>
+              <a class="dropdown-item" href="account.html?v=21">${window.Icon('user-round')} Profile</a>
+              <a class="dropdown-item" href="account.html?v=21">${window.Icon('settings')} Settings</a>
               <div class="dropdown-separator"></div>
               <button type="button" class="dropdown-item" id="signOutBtn">${window.Icon('log-out')} Sign out</button>
             </div>
@@ -276,7 +254,7 @@ const Layout = (() => {
         Api.setUser(null);
         toast('Signed out.', 'info');
         setTimeout(() => {
-          window.location.replace('login.html?v=19');
+          window.location.replace('login.html?v=21');
         }, 400);
       });
     }
@@ -295,7 +273,8 @@ const Layout = (() => {
     const btn = document.getElementById('sidebarCollapse');
     if (!btn) return;
     const collapsed = document.body.classList.contains('sidebar-collapsed');
-    btn.innerHTML = window.Icon(collapsed ? 'chevrons-right' : 'chevrons-left');
+    btn.innerHTML = `${window.Icon(collapsed ? 'chevrons-right' : 'chevrons-left', 'sidebar-collapse-icon')}
+      <span class="sidebar-collapse-label">${collapsed ? 'Expand' : 'Collapse'}</span>`;
     btn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
     btn.setAttribute('aria-label', btn.title);
     btn.setAttribute('aria-expanded', String(!collapsed));
@@ -364,7 +343,7 @@ const Layout = (() => {
       if (event.key !== 'Enter') return;
       const term = input.value.trim();
       if (!term) return;
-      window.location.href = `doctors.html?v=19&search=${encodeURIComponent(term)}`;
+      window.location.href = `doctors.html?v=21&search=${encodeURIComponent(term)}`;
     });
 
     /* ⌘K / Ctrl+K focuses the search field, like on ui.shadcn.com. */
@@ -454,7 +433,7 @@ const Layout = (() => {
    * ------------------------------------------------------------------- */
   async function requireAuth() {
     if (!Api.getToken()) {
-      window.location.replace('login.html?v=19');
+      window.location.replace('login.html?v=21');
       return false;
     }
     try {
@@ -464,7 +443,7 @@ const Layout = (() => {
     } catch (err) {
       Api.setToken('');
       Api.setUser(null);
-      window.location.replace('login.html?v=19');
+      window.location.replace('login.html?v=21');
       return false;
     }
   }

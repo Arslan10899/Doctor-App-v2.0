@@ -41,23 +41,6 @@ const Account = (() => {
     /* The header + sidebar were rendered before the update; refresh them. */
     const headerAvatar = document.querySelector('#profileDropdown .header-avatar');
     if (headerAvatar) headerAvatar.innerHTML = Utils.avatar(me, 'avatar-sm');
-
-    const sidebarUser = $('#sidebarUser');
-    if (sidebarUser) {
-      const meta = sidebarUser.querySelector('.sidebar-user-meta');
-      if (meta) {
-        const strong = meta.querySelector('strong');
-        const span = meta.querySelector('span');
-        if (strong) strong.textContent = me.name || 'Admin';
-        if (span) span.textContent = me.email || '';
-      }
-      const avatarHost = sidebarUser.querySelector('.avatar');
-      if (avatarHost) {
-        const tmp = document.createElement('div');
-        tmp.innerHTML = Utils.avatar(me, 'avatar-sm').trim();
-        if (tmp.firstElementChild) avatarHost.replaceWith(tmp.firstElementChild);
-      }
-    }
   }
 
   function fillFields() {
@@ -229,7 +212,7 @@ const Account = (() => {
     Api.setUser(null);
     toast('Signed out.', 'info');
     setTimeout(() => {
-      window.location.replace('login.html?v=19');
+      window.location.replace('login.html?v=21');
     }, 400);
   }
 
