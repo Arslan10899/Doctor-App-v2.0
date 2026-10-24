@@ -314,8 +314,25 @@ def init_db() -> None:
         conn.executescript(SCHEMA)
         _migrate_doctors(conn)
         _migrate_notifications(conn)
+        _migrate_hospital_media(conn)
         _ensure_admin_user(conn)
         conn.commit()
+
+
+def _migrate_hospital_media(conn: sqlite3.Connection) -> None:
+    """Hospital profile / cover images keyed by the backup's source_id so they
+    survive a re-import (the importer deletes and recreates the hospitals
+    table, but source ids stay stable)."""
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS hospital_media (
+            source_id   TEXT PRIMARY KEY,        -- hospitals.source_id
+            profile_url TEXT,
+            cover_url   TEXT,
+            updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
 
 
 def _ensure_admin_user(conn: sqlite3.Connection) -> None:

@@ -9,9 +9,9 @@
   <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
   <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
 
-  <link rel="stylesheet" href="css/theme.css?v=26" />
-  <link rel="stylesheet" href="css/layout.css?v=26" />
-  <link rel="stylesheet" href="css/components.css?v=26" />
+  <link rel="stylesheet" href="css/theme.css?v=27" />
+  <link rel="stylesheet" href="css/layout.css?v=27" />
+  <link rel="stylesheet" href="css/components.css?v=27" />
 
   <script>
     (function () {
@@ -47,14 +47,14 @@
               <div class="page-head">
                 <div>
                   <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
-                    <a href="hospitals.html?v=26" class="btn btn-outline btn-sm">
+                    <a href="hospitals.html?v=27" class="btn btn-outline btn-sm">
                       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
                       Back to Hospitals
                     </a>
                     <span class="text-sm text-muted">Hospital profile</span>
                   </div>
                 </div>
-                <a href="appointments.html?v=26" class="btn btn-outline">
+                <a href="appointments.html?v=27" class="btn btn-outline">
                   <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
                   All duty slots
                 </a>
@@ -64,15 +64,30 @@
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
                 <strong>Unable to load this hospital</strong>
                 <p id="profileErrorMsg" class="text-sm text-muted">Please try again.</p>
-                <a href="hospitals.html?v=26" class="btn btn-outline" style="margin-top:.75rem;">Back to Hospitals</a>
+                <a href="hospitals.html?v=27" class="btn btn-outline" style="margin-top:.75rem;">Back to Hospitals</a>
               </div>
 
               <div id="profileContent" style="display:flex;flex-direction:column;gap:1rem;">
                 <!-- Header card -->
-                <section class="card">
-                  <div class="card-header">
+                <section class="card" style="overflow:hidden;">
+                  <div class="hp-cover" id="hpCover">
+                    <img class="hp-cover-img" id="hpCoverImg" alt="" style="display:none;" />
+                    <div class="hp-cover-fallback" id="hpCoverFallback" aria-hidden="true"></div>
+                    <button type="button" class="hp-img-edit hp-cover-edit" id="hpCoverEdit" title="Upload cover image">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                      <span>Cover image</span>
+                    </button>
+                    <div class="hp-cover-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg><span>Hospital cover</span></div>
+                  </div>
+                  <div class="card-header" style="align-items:flex-start;">
                     <div style="display:flex;align-items:center;gap:1rem;min-width:0;flex-wrap:wrap;">
-                      <div class="hp-tile"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div>
+                      <div class="hp-avatar-wrap">
+                        <img class="hp-avatar-img" id="hpProfileImg" alt="" style="display:none;" />
+                        <div class="hp-tile" id="hpProfileFallback"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div>
+                        <button type="button" class="hp-img-edit hp-avatar-edit" id="hpProfileEdit" title="Upload profile image">
+                          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                        </button>
+                      </div>
                       <div style="min-width:0;">
                         <div class="card-title" style="font-size:1.125rem;" id="hpName">Loading…</div>
                         <div class="card-description" id="hpUrdu" style="direction:rtl;text-align:start;"></div>
@@ -83,6 +98,8 @@
                   <div class="card-content">
                     <div class="grid grid-4" id="hpStats"></div>
                   </div>
+                  <input type="file" accept="image/png,image/jpeg,image/webp" id="hpCoverInput" hidden />
+                  <input type="file" accept="image/png,image/jpeg,image/webp" id="hpProfileInput" hidden />
                 </section>
 
                 <!-- Doctors at this hospital -->
@@ -231,13 +248,78 @@
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: none; }
     }
+    /* cover banner + hospital profile (logo) image */
+    .hp-cover {
+      position: relative; height: 13rem;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      overflow: hidden; background: var(--muted);
+    }
+    .hp-cover-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; object-fit: cover;
+      animation: hpIn .3s ease both;
+    }
+    .hp-cover-fallback {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(60rem 16rem at 15% -30%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 60%),
+        radial-gradient(40rem 12rem at 90% 120%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 65%),
+        var(--muted);
+    }
+    .hp-cover-badge {
+      position: absolute; left: 1rem; bottom: .875rem;
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .3rem .75rem; border-radius: 999px;
+      background: rgb(0 0 0 / .38); color: #fff;
+      font-size: .75rem; backdrop-filter: blur(6px);
+      border: 1px solid rgb(255 255 255 / .18);
+    }
+    .hp-cover-badge .icon { width: .8rem; height: .8rem; }
+    .hp-cover-badge em { font-style: normal; opacity: .75; }
+    .hp-img-edit {
+      display: inline-flex; align-items: center; gap: .375rem;
+      padding: .35rem .7rem; border-radius: 999px;
+      background: rgb(0 0 0 / .5); color: #fff;
+      border: 1px solid rgb(255 255 255 / .22);
+      font-size: .75rem; cursor: pointer; opacity: .35;
+      transition: opacity .15s ease, background-color .15s ease, transform .15s ease;
+      backdrop-filter: blur(6px); z-index: 2;
+    }
+    .hp-img-edit .icon { width: .875rem; height: .875rem; }
+    .hp-img-edit:hover { opacity: 1; background: rgb(0 0 0 / .65); }
+    .hp-cover:hover .hp-cover-edit,
+    .hp-avatar-wrap:hover .hp-avatar-edit { opacity: 1; }
+    .hp-cover-edit {
+      position: absolute; right: 1rem; top: .875rem;
+      opacity: 1;
+    }
+    .hp-avatar-wrap { position: relative; flex: none; }
+    .hp-avatar-img {
+      width: 3rem; height: 3rem; border-radius: var(--radius-lg);
+      object-fit: cover;
+      border: 2px solid var(--card);
+      box-shadow: var(--shadow-sm);
+    }
+    .hp-avatar-wrap .hp-tile { box-shadow: var(--shadow-sm); }
+    .hp-avatar-edit {
+      position: absolute; right: -0.625rem; bottom: -0.625rem;
+      padding: .3rem; border-radius: 999px; width: 1.75rem; height: 1.75rem;
+      justify-content: center; opacity: 1;
+      background: var(--card); color: var(--foreground);
+      border: 1px solid var(--border); backdrop-filter: none;
+      box-shadow: var(--shadow-sm);
+    }
+    .hp-avatar-edit:hover { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+    .hp-img-edit.is-saving { pointer-events: none; opacity: .6; }
+    .hp-img-edit.is-saving .icon { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 
-  <script src="js/icons.js?v=26"></script>
-  <script src="js/utils.js?v=26"></script>
-  <script src="js/api.js?v=26"></script>
-  <script src="js/theme.js?v=26"></script>
-  <script src="js/layout.js?v=26"></script>
-  <script src="js/hospital-profile.js?v=26"></script>
+  <script src="js/icons.js?v=27"></script>
+  <script src="js/utils.js?v=27"></script>
+  <script src="js/api.js?v=27"></script>
+  <script src="js/theme.js?v=27"></script>
+  <script src="js/layout.js?v=27"></script>
+  <script src="js/hospital-profile.js?v=27"></script>
 </body>
 </html>

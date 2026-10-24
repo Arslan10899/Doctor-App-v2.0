@@ -145,7 +145,7 @@ const Api = (() => {
     setUser(null);
     const page = window.location.pathname.split('/').pop();
     /* Version query (?v=2) is not part of the pathname. */
-    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=26');
+    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=27');
   }
 
   return {
@@ -202,6 +202,16 @@ const Api = (() => {
     hospitalsDirectory: () => request('/hospitals/directory'),
     cities: () => request('/cities'),
     hospitalSchedules: (params = {}) => request('/hospital-schedules', { params }),
+    uploadHospitalProfileImage: (id, file) => {
+      const form = new FormData();
+      form.append('file', file);
+      return request(`/hospitals/${id}/profile-image`, { method: 'POST', body: form, raw: true });
+    },
+    uploadHospitalCoverImage: (id, file) => {
+      const form = new FormData();
+      form.append('file', file);
+      return request(`/hospitals/${id}/cover-image`, { method: 'POST', body: form, raw: true });
+    },
     appUsers: (params = {}) => request('/app-users', { params }),
     appUserTokens: () => request('/app-users/tokens'),
     notifications: (params = {}) => request('/notifications', { params }),

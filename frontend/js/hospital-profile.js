@@ -41,7 +41,7 @@ const HospitalProfile = (() => {
           <div style="display:flex;align-items:center;gap:.75rem;min-width:0;">
             ${Utils.avatar(d)}
             <div style="min-width:0;">
-              <a class="cell-strong link-cell" href="doctor-profile.html?v=26&id=${encodeURIComponent(d.id)}">${Utils.escape(d.name)}</a>
+              <a class="cell-strong link-cell" href="doctor-profile.html?v=27&id=${encodeURIComponent(d.id)}">${Utils.escape(d.name)}</a>
               <div class="cell-muted text-xs">${Utils.escape(d.email || '')}</div>
             </div>
           </div>
@@ -67,7 +67,7 @@ const HospitalProfile = (() => {
     const empty = !s.doctor_name || /no doctor/i.test(s.doctor_name);
     const doctorCell = empty
       ? `<span class="cell-muted">${Utils.escape(s.doctor_name || '—')}</span>`
-      : `<a class="link-cell" href="doctors.html?v=26&search=${encodeURIComponent(coreDoctorName(s.doctor_name))}"
+      : `<a class="link-cell" href="doctors.html?v=27&search=${encodeURIComponent(coreDoctorName(s.doctor_name))}"
              title="Find this doctor on the Doctors page">${Utils.escape(s.doctor_name)}</a>`;
 
     return `
@@ -147,6 +147,70 @@ const HospitalProfile = (() => {
     foot.appendChild(btn);
   }
 
+  /* Cover + profile (logo) images --------------------------------------- */
+  function renderHospitalMedia(h) {
+    const coverImg = $('#hpCoverImg');
+    const avatarImg = $('#hpProfileImg');
+
+    if (h.cover_image_url) {
+      coverImg.src = h.cover_image_url;
+      coverImg.style.display = '';
+      coverImg.onerror = () => { coverImg.style.display = 'none'; };
+    } else {
+      coverImg.style.display = 'none';
+      coverImg.removeAttribute('src');
+    }
+
+    if (h.profile_image_url) {
+      avatarImg.src = h.profile_image_url;
+      avatarImg.style.display = '';
+      $('#hpProfileFallback').style.display = 'none';
+      avatarImg.onerror = () => {
+        avatarImg.style.display = 'none';
+        $('#hpProfileFallback').style.display = '';
+      };
+    }
+  }
+
+  function wireImageUpload(hospitalId, kind) {
+    const map = {
+      cover: ['#hpCoverEdit', '#hpCoverInput', Api.uploadHospitalCoverImage, $('#hpCoverImg')],
+      profile: ['#hpProfileEdit', '#hpProfileInput', Api.uploadHospitalProfileImage, $('#hpProfileImg')],
+    }[kind];
+    if (!map) return;
+    const [btnSel, inputSel, uploadFn, imgEl] = map;
+    const btn = $(btnSel);
+    const input = $(inputSel);
+    if (!btn || !input) return;
+
+    btn.addEventListener('click', () => input.click());
+    input.addEventListener('change', async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      input.value = ''; /* allow picking the same file again */
+
+      const originalHTML = btn.innerHTML;
+      btn.classList.add('is-saving');
+      const span = btn.querySelector('span');
+      if (span) span.textContent = 'Uploading…';
+      try {
+        const result = await uploadFn(hospitalId, file);
+        const url = result.url || result.cover_image_url || result.profile_image_url;
+        if (imgEl && url) {
+          imgEl.src = url;
+          imgEl.style.display = '';
+          if (kind === 'profile') $('#hpProfileFallback').style.display = 'none';
+        }
+        window.toast?.(kind === 'cover' ? 'Cover image updated.' : 'Profile image updated.', 'success');
+      } catch (err) {
+        window.toast?.(err.message || 'Upload failed.', 'error');
+      } finally {
+        btn.classList.remove('is-saving');
+        btn.innerHTML = originalHTML;
+      }
+    });
+  }
+
   function render(data) {
     const h = data.hospital;
 
@@ -209,6 +273,9 @@ const HospitalProfile = (() => {
       const data = await Api.get(`/hospitals/${id}`);
       if (!data || !data.hospital || !data.hospital.id) throw new Error('Hospital not found');
       render(data);
+      renderHospitalMedia(data.hospital);
+      wireImageUpload(id, 'cover');
+      wireImageUpload(id, 'profile');
 
       /* Smooth landing: #doctors / #slots scroll straight to the section. */
       const anchor = window.location.hash;

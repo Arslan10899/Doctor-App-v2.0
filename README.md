@@ -411,7 +411,9 @@ page verifies the token on load, so the dashboard never opens before sign-in.
 | `GET` | `/api/specialties` | Departments with doctor counts |
 | `GET` | `/api/hospitals` | Distinct hospital names (used by the doctors filter) |
 | `GET` | `/api/hospitals/directory` | Hospital directory from the backup: name, Urdu name, city, doctor + slot counts, specialty chips |
-| `GET` | `/api/hospitals/{id}` | One hospital with its attached doctors (via the doctor↔hospital link table) and all duty slots |
+| `GET` | `/api/hospitals/{id}` | One hospital with its attached doctors (via the doctor↔hospital link table) and all duty slots; includes `profile_image_url` / `cover_image_url` |
+| `POST` | `/api/hospitals/{id}/profile-image` | Hospital logo / profile photo upload (multipart `file`, max 5 MB; stored in `hospital_media`, survives a re-import) |
+| `POST` | `/api/hospitals/{id}/cover-image` | Hospital cover / banner upload (multipart `file`, max 5 MB) – shown across the top of the profile page |
 | `GET` | `/api/cities` | Cities from the backup with hospital and doctor counts |
 | `GET` | `/api/hospital-schedules?hospital=…&day=…&search=…` | OPD/OT duty slots per hospital (the appointment details from the backup) |
 | `GET` | `/api/app-users?search=…&registered=yes|no&page=…` | Mobile app users: registered accounts + FCM device tokens (826 total) |

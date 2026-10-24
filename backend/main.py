@@ -889,9 +889,13 @@ def hospital_detail(
     """One hospital with its attached doctors and OPD/OT duty slots."""
     hospital = db.query_one(
         """
-        SELECT h.id, h.name, h.urdu_name, h.city, h.doctor_count,
-               (SELECT COUNT(*) FROM hospital_schedules s WHERE s.hospital_id = h.id) AS schedule_count
-        FROM hospitals h WHERE h.id = ?
+        SELECT h.id, h.source_id, h.name, h.urdu_name, h.city, h.doctor_count,
+               (SELECT COUNT(*) FROM hospital_schedules s WHERE s.hospital_id = h.id) AS schedule_count,
+               m.profile_url AS profile_image_url,
+               m.cover_url AS cover_image_url
+        FROM hospitals h
+        LEFT JOIN hospital_media m ON m.source_id = h.source_id
+        WHERE h.id = ?
         """,
         (hospital_id,),
     )
@@ -936,6 +940,8 @@ def hospital_detail(
             "doctor_count": len(doctors),
             "schedule_count": int(hospital["schedule_count"] or 0),
             "specialties": specialties,
+            "profile_image_url": hospital["profile_image_url"],
+            "cover_image_url": hospital["cover_image_url"],
         },
         "schedules": schedules,
         "doctors": [
@@ -952,6 +958,73 @@ def hospital_detail(
             for d in doctors
         ],
     }
+
+
+def _save_hospital_image(hospital_id: int, file: "UploadFile", kind: str) -> dict[str, Any]:
+    """Shared logic behind the hospital profile / cover image uploads."""
+    content = file.file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty file")
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Image is larger than 5 MB")
+
+    hospital = db.query_one("SELECT id, source_id FROM hospitals WHERE id = ?", (hospital_id,))
+    if not hospital:
+        raise HTTPException(status_code=404, detail="Hospital not found")
+    if not hospital["source_id"]:
+        raise HTTPException(status_code=403, detail="Remote accounts cannot be edited here")
+
+    kind_col = "profile_url" if kind == "profile" else "cover_url"
+    field = "profile_image_url" if kind == "profile" else "cover_image_url"
+
+    result = cloudinary_service.upload_image(content, file.filename or f"{kind}.png", "hospitals")
+
+    # replace an old local-disk image so uploads does not grow forever
+    current = db.query_one(
+        f"SELECT {kind_col} AS url FROM hospital_media WHERE source_id = ?",
+        (hospital["source_id"],),
+    )
+    old_url = current["url"] if current else None
+    if old_url and old_url.startswith("/uploads/"):
+        rel = old_url.removeprefix("/uploads/")
+        path = os.path.join(config.UPLOAD_DIR, rel)
+        try:
+            if os.path.isfile(path):
+                os.remove(path)
+        except OSError:
+            pass
+
+    db.execute(
+        f"""
+        INSERT INTO hospital_media (source_id, {kind_col}, updated_at)
+        VALUES (?, ?, datetime('now'))
+        ON CONFLICT(source_id) DO UPDATE SET
+            {kind_col} = excluded.{kind_col},
+            updated_at = excluded.updated_at
+        """,
+        (hospital["source_id"], result["url"]),
+    )
+    return {"url": result["url"], "provider": result["provider"], field: result["url"]}
+
+
+@app.post("/api/hospitals/{hospital_id}/profile-image")
+async def upload_hospital_profile_image(
+    hospital_id: int,
+    file: UploadFile = File(...),
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    """Hospital logo / profile photo shown on the profile page and cards."""
+    return _save_hospital_image(hospital_id, file, "profile")
+
+
+@app.post("/api/hospitals/{hospital_id}/cover-image")
+async def upload_hospital_cover_image(
+    hospital_id: int,
+    file: UploadFile = File(...),
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    """Wide banner rendered across the top of the hospital profile."""
+    return _save_hospital_image(hospital_id, file, "cover")
 
 
 @app.get("/api/hospital-schedules")
