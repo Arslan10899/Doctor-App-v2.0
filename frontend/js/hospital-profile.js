@@ -41,7 +41,7 @@ const HospitalProfile = (() => {
           <div style="display:flex;align-items:center;gap:.75rem;min-width:0;">
             ${Utils.avatar(d)}
             <div style="min-width:0;">
-              <a class="cell-strong link-cell" href="doctor-profile.html?v=31&id=${encodeURIComponent(d.id)}">${Utils.escape(d.name)}</a>
+              <a class="cell-strong link-cell" href="doctor-profile.html?v=32&id=${encodeURIComponent(d.id)}">${Utils.escape(d.name)}</a>
               <div class="cell-muted text-xs">${Utils.escape(d.email || '')}</div>
             </div>
           </div>
@@ -67,7 +67,7 @@ const HospitalProfile = (() => {
     const empty = !s.doctor_name || /no doctor/i.test(s.doctor_name);
     const doctorCell = empty
       ? `<span class="cell-muted">${Utils.escape(s.doctor_name || '—')}</span>`
-      : `<a class="link-cell" href="doctors.html?v=31&search=${encodeURIComponent(coreDoctorName(s.doctor_name))}"
+      : `<a class="link-cell" href="doctors.html?v=32&search=${encodeURIComponent(coreDoctorName(s.doctor_name))}"
              title="Find this doctor on the Doctors page">${Utils.escape(s.doctor_name)}</a>`;
 
     return `
@@ -104,7 +104,7 @@ const HospitalProfile = (() => {
     note.textContent =
       total > 0
         ? doctorsExpanded
-          ? `All ${total} doctor record${total === 1 ? '' : 's'} matched from the backup clinic addresses.`
+          ? `All ${total} doctor record${total === 1 ? '' : 's'} matched from the backup clinic addresses – scroll the list to browse.`
           : `Showing the top ${Math.min(DOCTORS_TOP_N, total)} of ${total} doctor record${total === 1 ? '' : 's'} from the backup – press "Show all" for the complete list.`
         : 'Doctors whose clinic address references this hospital.';
   }
@@ -113,15 +113,21 @@ const HospitalProfile = (() => {
     const body = $('#hpDoctorsBody');
     const extra = $('#hpDoctorsExtra');
     const foot = $('#hpDoctorsFoot');
+    const wrap = $('#hpDoctorsWrap');
     if (!body) return;
 
-    const top = doctorsExpanded ? rows : rows.slice(0, DOCTORS_TOP_N);
-    const rest = doctorsExpanded ? [] : rows.slice(DOCTORS_TOP_N);
-
-    body.innerHTML = doctorRows(top);
+    /* Expanded: every row inside a scrollable viewport (no page-length jump);
+       collapsed: just the top 3. */
+    body.innerHTML = doctorRows(
+      doctorsExpanded ? rows : rows.slice(0, DOCTORS_TOP_N)
+    );
     if (extra) {
-      extra.innerHTML = rest.length ? doctorRows(rest, 1) : '';
-      extra.hidden = rest.length > 0 && !doctorsExpanded;
+      extra.innerHTML = '';
+      extra.hidden = true;
+    }
+    if (wrap) {
+      wrap.classList.toggle('is-expanded', doctorsExpanded);
+      wrap.scrollTop = 0;
     }
     updateDoctorsNote(rows.length);
 
@@ -143,6 +149,52 @@ const HospitalProfile = (() => {
     btn.addEventListener('click', () => {
       doctorsExpanded = !doctorsExpanded;
       renderDoctors(doctorsRowCache);
+    });
+    foot.appendChild(btn);
+  }
+
+  /* OPD/OT duty slots: top 3 by default, "Show all N" reveals the rest inside
+     the same slim scrollable viewport as the doctors list. */
+  const SLOTS_TOP_N = 3;
+  let slotsExpanded = false;
+  let slotsRowCache = [];
+
+  function renderSlots(slots) {
+    const body = $('#hpSlotsBody');
+    const foot = $('#hpSlotsFoot');
+    const wrap = $('#hpSlotsWrap');
+    if (!body) return;
+
+    body.innerHTML = (slotsExpanded ? slots : slots.slice(0, SLOTS_TOP_N))
+      .map(slotRow)
+      .join('');
+    const empty = $('#hpSlotsEmpty');
+    if (empty) empty.classList.toggle('hidden', slots.length > 0);
+
+    if (wrap) {
+      wrap.classList.toggle('is-expanded', slotsExpanded && slots.length > SLOTS_TOP_N);
+      wrap.scrollTop = 0;
+    }
+
+    if (!foot) return;
+    foot.querySelectorAll('.hp-show-more').forEach((el) => el.remove());
+    if (slots.length <= SLOTS_TOP_N) {
+      foot.hidden = true;
+      slotsExpanded = false;
+      return;
+    }
+    foot.hidden = false;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'hp-show-more';
+    if (slotsExpanded) btn.classList.add('is-open');
+    btn.setAttribute('aria-expanded', String(slotsExpanded));
+    btn.innerHTML = slotsExpanded
+      ? `${icon('chevron-down')} Show top ${SLOTS_TOP_N}`
+      : `Show all <span class="hp-count">${Utils.number(slots.length)}</span> ${icon('chevron-down')}`;
+    btn.addEventListener('click', () => {
+      slotsExpanded = !slotsExpanded;
+      renderSlots(slotsRowCache);
     });
     foot.appendChild(btn);
   }
@@ -244,8 +296,8 @@ const HospitalProfile = (() => {
       updateDoctorsNote(rows.length);
 
     const slots = data.schedules;
-    $('#hpSlotsBody').innerHTML = slots.map(slotRow).join('');
-    $('#hpSlotsEmpty').classList.toggle('hidden', slots.length > 0);
+    slotsRowCache = slots;
+    renderSlots(slots);
   }
 
   function bindJumps() {
