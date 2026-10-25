@@ -251,6 +251,9 @@ How it works on a fresh host:
 - the database (SQLite) is rebuilt automatically **once per boot** from
   `data/firestore_backup.json` (`_autoseed_from_backup` in `backend/main.py`, disable with
   `DOCTOR_APP_AUTOSEED=0`). `serviceAccountKey.json` is never needed.
+- the 9 hospital card images (covers + logos) are committed to git under
+  `backend/uploads/hospitals/`; on the first boot `_relink_hospital_media()` re-links
+  them into `hospital_media`, so the directory cards look the same as local.
 - default login is `admin@doctorapp.com` / `admin123` — change the password on the account
   page immediately after the first deploy.
 

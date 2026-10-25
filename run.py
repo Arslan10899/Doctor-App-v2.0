@@ -36,6 +36,8 @@ def main() -> None:
 
     import uvicorn
 
+    import uvicorn
+
     import config
 
     print(f"  {config.APP_NAME} v{config.APP_VERSION}")

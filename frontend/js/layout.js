@@ -10,39 +10,39 @@ const NAV_SECTIONS = [
   {
     heading: 'Dashboard',
     items: [
-      { label: 'Overview', icon: 'layout-dashboard', href: 'index.html?v=26' },
+      { label: 'Overview', icon: 'layout-dashboard', href: 'index.html?v=31' },
       { label: 'Analytics', icon: 'bar-chart-3', module: 'Analytics' },
     ],
   },
   {
     heading: 'Management',
     items: [
-      { label: 'Doctors', icon: 'stethoscope', href: 'doctors.html?v=26', badge: 'doctors' },
-      { label: 'Hospitals', icon: 'building', href: 'hospitals.html?v=26', badge: 'hospitals' },
-      { label: 'Appointments', icon: 'calendar-days', href: 'appointments.html?v=26', badge: 'duty_slots' },
-      { label: 'Patients', icon: 'users', href: 'patients.html?v=26', badge: 'patients' },
-      { label: 'Payments', icon: 'wallet', href: 'payments.html?v=26' },
+      { label: 'Doctors', icon: 'stethoscope', href: 'doctors.html?v=31', badge: 'doctors' },
+      { label: 'Hospitals', icon: 'building', href: 'hospitals.html?v=31', badge: 'hospitals' },
+      { label: 'Appointments', icon: 'calendar-days', href: 'appointments.html?v=31', badge: 'duty_slots' },
+      { label: 'Patients', icon: 'users', href: 'patients.html?v=31', badge: 'patients' },
+      { label: 'Payments', icon: 'wallet', href: 'payments.html?v=31' },
     ],
   },
   {
     heading: 'Mobile App',
     items: [
-      { label: 'App Users', icon: 'smartphone', href: 'app-users.html?v=26', badge: 'app_users' },
-      { label: 'Notifications', icon: 'bell', href: 'notifications.html?v=26', badge: 'notifications' },
-      { label: 'My Ads', icon: 'megaphone', href: 'my-ads.html?v=26', badge: 'my_ads' },
+      { label: 'App Users', icon: 'smartphone', href: 'app-users.html?v=31', badge: 'app_users' },
+      { label: 'Notifications', icon: 'bell', href: 'notifications.html?v=31', badge: 'notifications' },
+      { label: 'My Ads', icon: 'megaphone', href: 'my-ads.html?v=31', badge: 'my_ads' },
     ],
   },
   {
     heading: 'Clinic',
     items: [
-      { label: 'Specialties', icon: 'sparkles', href: 'specialties.html?v=26' },
+      { label: 'Specialties', icon: 'sparkles', href: 'specialties.html?v=31' },
       { label: 'Departments', icon: 'building-2', module: 'Departments' },
     ],
   },
   {
     heading: 'System',
     items: [
-      { label: 'Settings', icon: 'settings', href: 'account.html?v=26' },
+      { label: 'Settings', icon: 'settings', href: 'account.html?v=31' },
       { label: 'Help Center', icon: 'help-circle', module: 'Help Center' },
     ],
   },
@@ -50,11 +50,11 @@ const NAV_SECTIONS = [
 
 /* Primary navigation shown in the header (desktop). */
 const HEADER_NAV = [
-  { label: 'Overview', href: 'index.html?v=26' },
-  { label: 'Doctors', href: 'doctors.html?v=26' },
-  { label: 'Patients', href: 'patients.html?v=26' },
-  { label: 'Appointments', href: 'appointments.html?v=26' },
-  { label: 'Payments', href: 'payments.html?v=26' },
+  { label: 'Overview', href: 'index.html?v=31' },
+  { label: 'Doctors', href: 'doctors.html?v=31' },
+  { label: 'Patients', href: 'patients.html?v=31' },
+  { label: 'Appointments', href: 'appointments.html?v=31' },
+  { label: 'Payments', href: 'payments.html?v=31' },
   { label: 'Analytics', module: 'Analytics' },
 ];
 
@@ -71,7 +71,7 @@ const Layout = (() => {
 
   function isActive(href) {
     if (!href) return false;
-    /* Versioned links (doctors.html?v=26) share the pathname with plain ones. */
+    /* Versioned links (doctors.html?v=31) share the pathname with plain ones. */
     return currentPage() === String(href).split('?')[0];
   }
 
@@ -189,7 +189,7 @@ const Layout = (() => {
           <span>Menu</span>
         </button>
 
-        <a class="header-brand" href="index.html?v=26">
+        <a class="header-brand" href="index.html?v=31">
           <img class="brand-mark" src="assets/app-icon-64.png?v=18" alt="Doctor App" />
           <span class="header-brand-name">Doctor App</span>
         </a>
@@ -231,8 +231,8 @@ const Layout = (() => {
             </button>
             <div class="dropdown-menu">
               <div class="dropdown-label">${Utils.escape(profile.email || '')}</div>
-              <a class="dropdown-item" href="account.html?v=26">${window.Icon('user-round')} Profile</a>
-              <a class="dropdown-item" href="account.html?v=26">${window.Icon('settings')} Settings</a>
+              <a class="dropdown-item" href="account.html?v=31">${window.Icon('user-round')} Profile</a>
+              <a class="dropdown-item" href="account.html?v=31">${window.Icon('settings')} Settings</a>
               <div class="dropdown-separator"></div>
               <button type="button" class="dropdown-item" id="signOutBtn">${window.Icon('log-out')} Sign out</button>
             </div>
@@ -254,7 +254,7 @@ const Layout = (() => {
         Api.setUser(null);
         toast('Signed out.', 'info');
         setTimeout(() => {
-          window.location.replace('login.html?v=26');
+          window.location.replace('login.html?v=31');
         }, 400);
       });
     }
@@ -343,7 +343,7 @@ const Layout = (() => {
       if (event.key !== 'Enter') return;
       const term = input.value.trim();
       if (!term) return;
-      window.location.href = `doctors.html?v=26&search=${encodeURIComponent(term)}`;
+      window.location.href = `doctors.html?v=31&search=${encodeURIComponent(term)}`;
     });
 
     /* ⌘K / Ctrl+K focuses the search field, like on ui.shadcn.com. */
@@ -433,7 +433,7 @@ const Layout = (() => {
    * ------------------------------------------------------------------- */
   async function requireAuth() {
     if (!Api.getToken()) {
-      window.location.replace('login.html?v=26');
+      window.location.replace('login.html?v=31');
       return false;
     }
     try {
@@ -443,7 +443,7 @@ const Layout = (() => {
     } catch (err) {
       Api.setToken('');
       Api.setUser(null);
-      window.location.replace('login.html?v=26');
+      window.location.replace('login.html?v=31');
       return false;
     }
   }

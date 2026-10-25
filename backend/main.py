@@ -82,6 +82,25 @@ async def no_cache_frontend(request: Request, call_next):
 def on_startup() -> None:
     db.init_db()
     _autoseed_from_backup()
+    _relink_hospital_media()
+
+
+def _relink_hospital_media() -> None:
+    """After the backup import, `hospital_media` (hospital card cover /
+    profile images) is still empty: those files are committed to git under
+    backend/uploads/hospitals and only the media links need re-creating.
+    Runs once, the first time the table is empty.  Convert to a no-op with
+    DOCTOR_APP_AUTOSEED=0."""
+    if os.environ.get("DOCTOR_APP_AUTOSEED", "1") != "1":
+        return
+    try:
+        from hospital_media_seed import apply_if_empty
+
+        linked = apply_if_empty()
+        if linked:
+            print(f"[startup] linked {linked} hospital card images from backend/uploads")
+    except Exception as exc:  # never let a failed seed break the server
+        print(f"[startup] hospital media link skipped: {exc}")
 
 
 def _autoseed_from_backup() -> None:
