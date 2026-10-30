@@ -21,6 +21,7 @@ import re
 import secrets
 import sys
 import uuid
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from typing import Any, Optional
 
@@ -36,10 +37,22 @@ import database as db  # noqa: E402
 import schemas  # noqa: E402
 from services import cloudinary_service, firebase_service  # noqa: E402
 
+
+@asynccontextmanager
+async def lifespan(app: "FastAPI"):
+    """Startup / shutdown hook (lifespan API – works on Starlette >= 1.0 too,
+    where the old on_event() decorator was removed)."""
+    db.init_db()
+    _autoseed_from_backup()
+    _relink_hospital_media()
+    yield
+
+
 app = FastAPI(
     title=f"{config.APP_NAME} API",
     version=config.APP_VERSION,
     description="REST API for the Doctor Application admin dashboard.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -78,13 +91,6 @@ async def no_cache_frontend(request: Request, call_next):
 # ---------------------------------------------------------------------------
 # Life cycle
 # ---------------------------------------------------------------------------
-@app.on_event("startup")
-def on_startup() -> None:
-    db.init_db()
-    _autoseed_from_backup()
-    _relink_hospital_media()
-
-
 def _relink_hospital_media() -> None:
     """After the backup import, `hospital_media` (hospital card cover /
     profile images) is still empty: those files are committed to git under
