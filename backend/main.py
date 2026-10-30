@@ -63,29 +63,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Compress HTML / JS / CSS / API responses >= 1 KB (large win on hosted plans,
+# where the browser download path is the slow part).
+from starlette.middleware.gzip import GZipMiddleware  # noqa: E402
+
+app.add_middleware(GZipMiddleware, minimum_size=1024)
+
 
 @app.middleware("http")
-async def no_cache_frontend(request: Request, call_next):
-    """Always serve fresh HTML/CSS/JS – this is a local admin app, not a CDN."""
+async def cache_control_frontend(request: Request, call_next):
+    """Smart caching for hosted deploys (PythonAnywhere / Render):
+
+    - css/js/assets/uploads are version-busted or uniquely named, so the
+      browser can cache them for a year (huge speed-up on repeat visits).
+    - HTML pages revalidate (ETag -> cheap 304 instead of re-download).
+    - API responses are untouched.
+    """
     path = request.url.path.lower()
-    is_asset = path.endswith((".html", ".js", ".css"))
-    if is_asset:
-        # Ignore revalidation headers so the browser always gets the full file.
-        request.scope["headers"] = [
-            (key, value)
-            for key, value in request.scope["headers"]
-            if key not in (b"if-none-match", b"if-modified-since")
-        ]
+    if request.method in {"GET", "HEAD"} and not path.startswith("/api/") and not path.startswith("/docs") and not path.startswith("/openapi"):
+        long_cache = path.startswith(
+            ("/css/", "/js/", "/assets/", "/uploads/")
+        )
+        response = await call_next(request)
+        if long_cache:
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif path.endswith(".html") or path in ("/", ""):
+            response.headers["Cache-Control"] = "no-cache"
+        return response
 
-    response = await call_next(request)
-
-    if is_asset:
-        response.headers["Cache-Control"] = "no-store, max-age=0"
-        if "etag" in response.headers:
-            del response.headers["etag"]
-        if "last-modified" in response.headers:
-            del response.headers["last-modified"]
-    return response
+    return await call_next(request)
 
 
 # ---------------------------------------------------------------------------
