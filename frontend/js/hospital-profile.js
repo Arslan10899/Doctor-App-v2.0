@@ -41,7 +41,7 @@ const HospitalProfile = (() => {
           <div style="display:flex;align-items:center;gap:.75rem;min-width:0;">
             ${Utils.avatar(d)}
             <div style="min-width:0;">
-              <a class="cell-strong link-cell" href="doctor-profile.html?v=32&id=${encodeURIComponent(d.id)}">${Utils.escape(d.name)}</a>
+              <a class="cell-strong link-cell" href="doctor-profile.html?v=33&id=${encodeURIComponent(d.id)}">${Utils.escape(d.name)}</a>
               <div class="cell-muted text-xs">${Utils.escape(d.email || '')}</div>
             </div>
           </div>
@@ -67,7 +67,7 @@ const HospitalProfile = (() => {
     const empty = !s.doctor_name || /no doctor/i.test(s.doctor_name);
     const doctorCell = empty
       ? `<span class="cell-muted">${Utils.escape(s.doctor_name || '—')}</span>`
-      : `<a class="link-cell" href="doctors.html?v=32&search=${encodeURIComponent(coreDoctorName(s.doctor_name))}"
+      : `<a class="link-cell" href="doctors.html?v=33&search=${encodeURIComponent(coreDoctorName(s.doctor_name))}"
              title="Find this doctor on the Doctors page">${Utils.escape(s.doctor_name)}</a>`;
 
     return `

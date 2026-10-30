@@ -22,9 +22,13 @@ const Api = (() => {
     if (window.__API_BASE__) return [window.__API_BASE__];
 
     const { protocol, hostname, port } = window.location;
-    const staticPorts = ['5500', '8080', '3000', '5173', '4200', ''];
+    /* Only dev-style static ports fall back to a local backend port.
+       ("port === ''" is the normal https/http case (PythonAnywhere, hosting) –
+        it must stay same-origin, otherwise the browser tries
+        https://host:8000/api which is blocked by the host.) */
+    const staticPorts = ['5500', '8080', '3000', '5173', '4200'];
 
-    if (staticPorts.includes(port)) {
+    if (port && staticPorts.includes(port)) {
       const apiPort = window.__API_PORT__ || '8000';
       const altPort = apiPort === '8000' ? '8010' : '8000';
       return [
@@ -145,7 +149,7 @@ const Api = (() => {
     setUser(null);
     const page = window.location.pathname.split('/').pop();
     /* Version query (?v=2) is not part of the pathname. */
-    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=32');
+    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=33');
   }
 
   return {
