@@ -407,9 +407,12 @@
       $('#profileCreated').textContent = d.created_at ? Utils.formatDate(d.created_at) : '—';
       $('#profileUpdated').textContent = d.updated_at ? Utils.formatDateTime(d.updated_at) : '—';
 
+      /* Media gallery (photos + videos) */
+      renderDoctorMedia(d.media);
+
       /* Edit link */
       const editLink = $('#editProfile');
-      if (editLink) editLink.setAttribute('href', `doctor-edit.html?v=33&id=${encodeURIComponent(d.id)}`);
+      if (editLink) editLink.setAttribute('href', `doctor-edit.html?v=34&id=${encodeURIComponent(d.id)}`);
     } catch (err) {
       profileContent.style.display = 'none';
       profileError.style.display = 'flex';
@@ -422,5 +425,183 @@
   const refreshBtn = document.getElementById('refreshProfile');
   if (refreshBtn) refreshBtn.addEventListener('click', load);
 
-  document.addEventListener('DOMContentLoaded', load);
+  /* ---------------------------------------------------------------------
+   * Media gallery (photos + videos)
+   * ------------------------------------------------------------------- */
+  function youTubeEmbed(url) {
+    const m = String(url).match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,20})/i
+    );
+    return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+  }
+
+  function isDirectVideoUrl(url) {
+    return /\.(mp4|webm|m4v|mov|ogg)(\?|#|$)/i.test(String(url));
+  }
+
+  function renderDoctorMedia(media) {
+    const list = Array.isArray(media) ? media : [];
+    const images = list.filter((m) => m.kind === 'image');
+    const videos = list.filter((m) => m.kind === 'video');
+
+    const imgGrid = $('#mediaImages');
+    const imgEmpty = $('#mediaImagesEmpty');
+    if (imgGrid) {
+      imgGrid.innerHTML = images
+        .map(
+          (m) => `
+          <div class="media-tile">
+            <img src="${Utils.escape(m.url)}" alt="Photo" loading="lazy" />
+            <button type="button" class="media-delete" data-id="${Number(m.id)}" title="Delete photo">&#10005;</button>
+          </div>`
+        )
+        .join('');
+      if (imgEmpty) imgEmpty.style.display = images.length ? 'none' : 'flex';
+    }
+
+    const vidBox = $('#mediaVideos');
+    const vidEmpty = $('#mediaVideosEmpty');
+    if (vidBox) {
+      vidBox.innerHTML = videos
+        .map((m) => {
+          let player;
+          if (m.provider === 'link') {
+            const yt = youTubeEmbed(m.url);
+            if (yt) {
+              player = `<iframe src="${Utils.escape(yt)}" loading="lazy" allowfullscreen title="Video"></iframe>`;
+            } else if (isDirectVideoUrl(m.url)) {
+              player = `<video controls preload="metadata" src="${Utils.escape(m.url)}"></video>`;
+            } else {
+              player = null; /* unknown host – show the link only */
+            }
+          } else {
+            player = `<video controls preload="metadata" src="${Utils.escape(m.url)}"></video>`;
+          }
+          return `
+          <div class="media-video">
+            ${player || ''}
+            <div class="media-link">
+              <div class="text-xs text-muted">Video</div>
+              <a href="${Utils.escape(m.url)}" target="_blank" rel="noopener noreferrer" class="text-sm">Open video &#8599;</a>
+            </div>
+            <button type="button" class="media-delete" data-id="${Number(m.id)}" title="Delete video">&#10005;</button>
+          </div>`;
+        })
+        .join('');
+      if (vidEmpty) vidEmpty.style.display = videos.length ? 'none' : 'flex';
+    }
+  }
+
+  function setMediaBusy(busy) {
+    ['btnAddImages', 'btnAddVideoFile', 'btnAddVideoLink', 'btnSaveVideoLink'].forEach((sel) => {
+      const btn = $(sel);
+      if (btn) btn.disabled = busy;
+    });
+  }
+
+  async function refreshMedia(doctorId) {
+    const res = await Api.doctorMedia(doctorId);
+    renderDoctorMedia(res.items || []);
+  }
+
+  function setupMedia(doctorId) {
+    const inputImages = $('#mediaImageInput');
+    const inputVideo = $('#mediaVideoInput');
+    const btnLink = $('#btnAddVideoLink');
+    const linkWrap = $('#mediaLinkWrap');
+    if (!inputImages || !inputVideo || !btnLink) return;
+
+    $('#btnAddImages').addEventListener('click', () => inputImages.click());
+    $('#btnAddVideoFile').addEventListener('click', () => inputVideo.click());
+
+    inputImages.addEventListener('change', async () => {
+      const files = Array.from(inputImages.files || []);
+      if (!files.length) return;
+      const big = files.filter((f) => f.size > 10 * 1024 * 1024);
+      if (big.length) {
+        toast(`Image ${big.map((f) => f.name).join(', ')} 10 MB se bari hai`, 'error');
+        inputImages.value = '';
+        return;
+      }
+      setMediaBusy(true);
+      try {
+        const res = await Api.uploadDoctorImages(doctorId, files);
+        renderDoctorMedia(res.items || []);
+        toast(`${res.saved || files.length} photo(s) add ho gayi`);
+      } catch (err) {
+        toast(err.message || 'Upload fail hua', 'error');
+      } finally {
+        setMediaBusy(false);
+        inputImages.value = '';
+      }
+    });
+
+    inputVideo.addEventListener('change', async () => {
+      const file = inputVideo.files && inputVideo.files[0];
+      if (!file) return;
+      if (file.size > 50 * 1024 * 1024) {
+        toast('Video 50 MB se bari hai – chhoti video ya link use karein', 'error');
+        inputVideo.value = '';
+        return;
+      }
+      setMediaBusy(true);
+      toast('Video upload ho rahi hai… barri file lagi sakti hai', 'info');
+      try {
+        const res = await Api.uploadDoctorVideoFile(doctorId, file);
+        renderDoctorMedia(res.items || []);
+        toast('Video add ho gayi');
+      } catch (err) {
+        toast(err.message || 'Video upload fail hui', 'error');
+      } finally {
+        setMediaBusy(false);
+        inputVideo.value = '';
+      }
+    });
+
+    btnLink.addEventListener('click', () => {
+      const show = linkWrap.style.display === 'none' || linkWrap.style.display === '';
+      linkWrap.style.display = show ? 'flex' : 'none';
+      if (show) $('#mediaVideoLinkInput').focus();
+    });
+
+    $('#btnSaveVideoLink').addEventListener('click', async () => {
+      const url = $('#mediaVideoLinkInput').value.trim();
+      if (!url) return;
+      setMediaBusy(true);
+      try {
+        const res = await Api.addDoctorVideoLink(doctorId, url);
+        renderDoctorMedia(res.items || []);
+        $('#mediaVideoLinkInput').value = '';
+        linkWrap.style.display = 'none';
+        toast('Video link add ho gaya');
+      } catch (err) {
+        toast(err.message || 'Link save nahi hua', 'error');
+      } finally {
+        setMediaBusy(false);
+      }
+    });
+
+    const handleDeleteClick = async (ev) => {
+      const btn = ev.target.closest('.media-delete');
+      if (!btn) return;
+      if (!confirm('Ye media item delete karna hai?')) return;
+      setMediaBusy(true);
+      try {
+        const res = await Api.deleteDoctorMedia(Number(btn.dataset.id));
+        renderDoctorMedia(res.items || []);
+        toast('Media delete ho gaya');
+      } catch (err) {
+        toast(err.message || 'Delete fail hua', 'error');
+      } finally {
+        setMediaBusy(false);
+      }
+    };
+    $('#mediaImages').addEventListener('click', handleDeleteClick);
+    $('#mediaVideos').addEventListener('click', handleDeleteClick);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (id) setupMedia(id);
+    load();
+  });
 })();

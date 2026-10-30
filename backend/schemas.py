@@ -247,3 +247,7 @@ class DashboardStats(BaseModel):
 
 class Message(BaseModel):
     message: str
+
+
+class VideoLinkCreate(BaseModel):
+    url: str = Field(..., description="External video URL (YouTube, Vimeo, or direct mp4)")

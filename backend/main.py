@@ -741,6 +741,7 @@ def get_doctor(doctor_id: int, user: dict[str, Any] = Depends(current_user)) -> 
         raise HTTPException(status_code=404, detail="Doctor not found")
     doctor["id"] = int(doctor["id"])
     doctor["appointments_count"] = int(doctor["appointments_count"] or 0)
+    doctor["media"] = _list_doctor_media(doctor_id)
     return doctor
 
 
@@ -809,6 +810,10 @@ def delete_doctor(doctor_id: int, user: dict[str, Any] = Depends(current_user)) 
     existing = db.query_one("SELECT * FROM doctors WHERE id = ?", (doctor_id,))
     if not existing:
         raise HTTPException(status_code=404, detail="Doctor not found")
+    # remove gallery media files + rows before dropping the doctor
+    for row in db.query_all("SELECT url, provider FROM doctor_media WHERE doctor_id = ?", (doctor_id,)):
+        _delete_media_file(row["url"], row["provider"] or "")
+    db.execute("DELETE FROM doctor_media WHERE doctor_id = ?", (doctor_id,))
     db.execute("DELETE FROM doctors WHERE id = ?", (doctor_id,))
     return {"message": f"Doctor '{existing['name']}' deleted"}
 
@@ -836,6 +841,144 @@ async def upload_avatar(
         (result["url"], result.get("public_id"), db.now_iso(), doctor_id),
     )
     return {"url": result["url"], "provider": result["provider"]}
+
+
+# ---------------------------------------------------------------------------
+# Doctor profile media gallery (photos + videos)
+# ---------------------------------------------------------------------------
+DOCTOR_IMAGE_MAX_BYTES = 10 * 1024 * 1024   # 10 MB
+DOCTOR_VIDEO_MAX_BYTES = 50 * 1024 * 1024   # 50 MB
+
+
+def _list_doctor_media(doctor_id: int) -> list[dict[str, Any]]:
+    rows = db.query_all(
+        """
+        SELECT id, doctor_id, kind, url, provider, created_at
+        FROM doctor_media
+        WHERE doctor_id = ?
+        ORDER BY kind ASC, id DESC
+        """,
+        (doctor_id,),
+    )
+    for row in rows:
+        row["id"] = int(row["id"])
+        row["doctor_id"] = int(row["doctor_id"])
+    return rows
+
+
+def _doctor_media_row(media_id: int) -> dict[str, Any]:
+    row = db.query_one("SELECT * FROM doctor_media WHERE id = ?", (media_id,))
+    if not row:
+        raise HTTPException(status_code=404, detail="Media item not found")
+    return row
+
+
+def _delete_media_file(url: str, provider: str) -> None:
+    """Remove the local file behind /uploads/... URLs (Cloudinary items are
+    left / destroyed only if a public_id is present – harmless either way)."""
+    if provider != "local" or not url or not url.startswith("/uploads/"):
+        cloudinary_service.delete_image(None, url)
+        return
+    # /uploads/<folder>/<name> -> never allow escaping the upload directory
+    parts = [p for p in url[len("/uploads/"):].split("/") if p]
+    if any(p in ("..", ".") for p in parts) or len(parts) != 2:
+        return
+    target = os.path.join(config.UPLOAD_DIR, *parts)
+    upload_root = os.path.abspath(config.UPLOAD_DIR)
+    try:
+        if os.path.abspath(target).startswith(upload_root) and os.path.isfile(target):
+            os.remove(target)
+    except OSError as exc:  # keep the row removal going even if unlink fails
+        print(f"[media] local file delete failed for {url}: {exc}")
+
+
+@app.post("/api/doctors/{doctor_id}/media/images")
+async def upload_doctor_media_images(
+    doctor_id: int,
+    files: list[UploadFile] = File(...),
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    if not db.query_one("SELECT id FROM doctors WHERE id = ?", (doctor_id,)):
+        raise HTTPException(status_code=404, detail="Doctor not found")
+
+    saved: list[dict[str, Any]] = []
+    for file in files[:12]:  # safety cap per request
+        content = await file.read()
+        if not content:
+            continue
+        if len(content) > DOCTOR_IMAGE_MAX_BYTES:
+            raise HTTPException(status_code=413, detail=f"Image '{file.filename}' 10 MB se bari hai")
+        result = cloudinary_service.upload_media(content, file.filename or "photo.jpg", "doctors", "image")
+        db.execute(
+            "INSERT INTO doctor_media (doctor_id, kind, url, provider, public_id) VALUES (?, 'image', ?, ?, ?)",
+            (doctor_id, result["url"], result["provider"], result.get("public_id")),
+        )
+        saved.append({"url": result["url"], "provider": result["provider"]})
+
+    if not saved:
+        raise HTTPException(status_code=400, detail="Koi image nahi mili")
+    return {"saved": len(saved), "items": _list_doctor_media(doctor_id)}
+
+
+@app.post("/api/doctors/{doctor_id}/media/video-file")
+async def upload_doctor_media_video(
+    doctor_id: int,
+    file: UploadFile = File(...),
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    if not db.query_one("SELECT id FROM doctors WHERE id = ?", (doctor_id,)):
+        raise HTTPException(status_code=404, detail="Doctor not found")
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty file")
+    if len(content) > DOCTOR_VIDEO_MAX_BYTES:
+        raise HTTPException(status_code=413, detail="Video 50 MB se bari hai")
+
+    result = cloudinary_service.upload_media(content, file.filename or "video.mp4", "doctors", "video")
+    db.execute(
+        "INSERT INTO doctor_media (doctor_id, kind, url, provider, public_id) VALUES (?, 'video', ?, ?, ?)",
+        (doctor_id, result["url"], result["provider"], result.get("public_id")),
+    )
+    return {"url": result["url"], "provider": result["provider"], "items": _list_doctor_media(doctor_id)}
+
+
+@app.post("/api/doctors/{doctor_id}/media/video-link")
+def add_doctor_media_video_link(
+    doctor_id: int,
+    payload: schemas.VideoLinkCreate,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    if not db.query_one("SELECT id FROM doctors WHERE id = ?", (doctor_id,)):
+        raise HTTPException(status_code=404, detail="Doctor not found")
+
+    url = payload.url.strip()
+    if not re.match(r"^https?://[^\s]+$", url) or len(url) > 2048:
+        raise HTTPException(status_code=400, detail="Valid video link (http/https URL) den")
+    db.execute(
+        "INSERT INTO doctor_media (doctor_id, kind, url, provider) VALUES (?, 'video', ?, 'link')",
+        (doctor_id, url),
+    )
+    return {"url": url, "provider": "link", "items": _list_doctor_media(doctor_id)}
+
+
+@app.delete("/api/media/{media_id}")
+def delete_doctor_media(media_id: int, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    row = _doctor_media_row(media_id)
+    doctor_id = int(row["doctor_id"])
+    _delete_media_file(row["url"], row["provider"] or "")
+    db.execute("DELETE FROM doctor_media WHERE id = ?", (media_id,))
+    return {"message": "Media deleted", "items": _list_doctor_media(doctor_id)}
+
+
+@app.get("/api/doctors/{doctor_id}/media")
+def list_doctor_media(
+    doctor_id: int,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    if not db.query_one("SELECT id FROM doctors WHERE id = ?", (doctor_id,)):
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    return {"items": _list_doctor_media(doctor_id)}
 
 
 # ---------------------------------------------------------------------------

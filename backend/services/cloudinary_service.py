@@ -82,7 +82,65 @@ def delete_image(public_id: Optional[str], url: Optional[str] = None) -> bool:
 # ---------------------------------------------------------------------------
 # Providers
 # ---------------------------------------------------------------------------
-def _upload_to_cloudinary(file_bytes: bytes, filename: str, folder: str) -> dict[str, Any]:
+def upload_media(
+    file_bytes: bytes,
+    filename: str,
+    folder: str = "doctors",
+    kind: str = "image",
+) -> dict[str, Any]:
+    """
+    Upload gallery media (image or video). Same payload shape as upload_image.
+    Video files fall back to local disk until Cloudinary video support is
+    plugged in via env (resource_type switches automatically there).
+    """
+    resource_type = "video" if kind == "video" else "image"
+
+    if _ensure_configured():
+        try:
+            return _upload_to_cloudinary(file_bytes, filename, folder, resource_type)
+        except Exception as exc:  # pragma: no cover
+            logger.error("Cloudinary %s upload failed, falling back to local disk: %s", resource_type, exc)
+    return _store_local_media(file_bytes, filename, folder, kind)
+
+
+# extra video extensions allowed alongside the image set
+VIDEO_EXTS = {".mp4", ".webm", ".mov", ".m4v", ".avi", ".3gp"}
+
+
+def _store_local_media(
+    file_bytes: bytes,
+    filename: str,
+    folder: str,
+    kind: str,
+) -> dict[str, Any]:
+    target_dir = os.path.join(config.UPLOAD_DIR, folder)
+    os.makedirs(target_dir, exist_ok=True)
+
+    extension = os.path.splitext(filename)[1].lower() or (".mp4" if kind == "video" else ".png")
+    allowed = VIDEO_EXTS if kind == "video" else {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}
+    if extension not in allowed:
+        extension = ".mp4" if kind == "video" else ".png"
+
+    stored_name = f"{uuid.uuid4().hex}{extension}"
+    absolute_path = os.path.join(target_dir, stored_name)
+
+    with open(absolute_path, "wb") as fh:
+        fh.write(file_bytes)
+
+    return {
+        "url": f"/uploads/{folder}/{stored_name}",
+        "public_id": None,
+        "provider": "local",
+        "secret": secrets.token_hex(8),
+    }
+
+
+def _upload_to_cloudinary(
+    file_bytes: bytes,
+    filename: str,
+    folder: str,
+    resource_type: str = "image",
+) -> dict[str, Any]:
     import cloudinary  # type: ignore
     import cloudinary.uploader  # type: ignore
 
@@ -96,7 +154,7 @@ def _upload_to_cloudinary(file_bytes: bytes, filename: str, folder: str) -> dict
     result = cloudinary.uploader.upload(
         file_bytes,
         folder=f"{config.CLOUDINARY_FOLDER}/{folder}",
-        resource_type="image",
+        resource_type=resource_type,
         overwrite=True,
         public_id=f"{folder}/{uuid.uuid4().hex}",
     )

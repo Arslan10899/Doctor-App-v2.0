@@ -289,8 +289,24 @@ CREATE TABLE IF NOT EXISTS opd_specialties (
 
 
 def get_connection() -> sqlite3.Connection:
-    """Return a thread-local SQLite connection (one per worker thread)."""
+    """Return a thread-local SQLite connection (one per worker thread).
+
+    Self-healing: under uvicorn the thread that ran the lifespan startup
+    (MainThread) can have its connection closed before the first async
+    request – recreate it instead of crashing every async endpoint with
+    "Cannot operate on a closed database".
+    """
     conn = getattr(_local, "conn", None)
+    if conn is not None:
+        try:
+            conn.execute("SELECT 1")
+        except sqlite3.Error:
+            try:
+                conn.close()
+            except sqlite3.Error:
+                pass
+            conn = None
+            _local.conn = None
     if conn is None:
         conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=30)
         conn.row_factory = sqlite3.Row
@@ -315,6 +331,7 @@ def init_db() -> None:
         _migrate_doctors(conn)
         _migrate_notifications(conn)
         _migrate_hospital_media(conn)
+        _migrate_doctor_media(conn)
         _ensure_admin_user(conn)
         conn.commit()
 
@@ -332,6 +349,27 @@ def _migrate_hospital_media(conn: sqlite3.Connection) -> None:
             updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
         )
         """
+    )
+
+
+def _migrate_doctor_media(conn: sqlite3.Connection) -> None:
+    """Doctor profile media gallery: photos + short videos (uploaded files
+    or external video links), shown on the doctor's full profile page."""
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS doctor_media (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            doctor_id   INTEGER NOT NULL,
+            kind        TEXT NOT NULL CHECK (kind IN ('image', 'video')),
+            url         TEXT NOT NULL,
+            provider    TEXT,
+            public_id   TEXT,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_docmedia_doctor ON doctor_media(doctor_id, kind)"
     )
 
 

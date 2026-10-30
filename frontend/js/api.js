@@ -149,7 +149,7 @@ const Api = (() => {
     setUser(null);
     const page = window.location.pathname.split('/').pop();
     /* Version query (?v=2) is not part of the pathname. */
-    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=33');
+    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=34');
   }
 
   return {
@@ -216,6 +216,22 @@ const Api = (() => {
       form.append('file', file);
       return request(`/hospitals/${id}/cover-image`, { method: 'POST', body: form, raw: true });
     },
+
+    /* ---- doctor profile media gallery -------------------------------- */
+    doctorMedia: (id) => request(`/doctors/${id}/media`),
+    uploadDoctorImages: (id, files) => {
+      const form = new FormData();
+      files.forEach((file) => form.append('files', file));
+      return request(`/doctors/${id}/media/images`, { method: 'POST', body: form, raw: true });
+    },
+    uploadDoctorVideoFile: (id, file) => {
+      const form = new FormData();
+      form.append('file', file);
+      return request(`/doctors/${id}/media/video-file`, { method: 'POST', body: form, raw: true });
+    },
+    addDoctorVideoLink: (id, url) =>
+      request(`/doctors/${id}/media/video-link`, { method: 'POST', body: { url } }),
+    deleteDoctorMedia: (mediaId) => request(`/media/${mediaId}`, { method: 'DELETE' }),
     appUsers: (params = {}) => request('/app-users', { params }),
     appUserTokens: () => request('/app-users/tokens'),
     notifications: (params = {}) => request('/notifications', { params }),
