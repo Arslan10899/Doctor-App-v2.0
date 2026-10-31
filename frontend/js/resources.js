@@ -331,7 +331,42 @@ const Resources = (() => {
     }
   }
 
+  function ensurePassphrase() {
+    if (localStorage.getItem('doctor_app_vault_pass')) return true;
+    const host = document.querySelector('.content-inner');
+    if (!host || document.getElementById('passphraseBanner')) return false;
+    const banner = document.createElement('div');
+    banner.id = 'passphraseBanner';
+    banner.className = 'card';
+    banner.style.borderLeft = '3px solid var(--primary)';
+    banner.innerHTML = `
+      <div class="card-content" style="display:grid;gap:.6rem;">
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          <span style="color:var(--primary);">${window.Icon('check-circle')}</span>
+          <b>Vault passphrase set karein</b>
+        </div>
+        <div class="text-sm text-muted">Passwords encrypt karne ke liye ek passphrase chahiye. Ye sirf aap ke browser mein save hoti hai — server aur git repo kabhi nahi dekhte. Yaad rakhein, warna purane passwords recover nahi honge.</div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <input class="input" id="ppInput" type="password" placeholder="Passphrase (min 4 chars)" style="max-width:22rem;" />
+          <button type="button" class="btn btn-primary" id="ppSetBtn">Set passphrase</button>
+        </div>
+      </div>`;
+    host.insertBefore(banner, host.firstChild);
+    const addBtn = document.getElementById('addBtn');
+    if (addBtn) { addBtn.disabled = true; addBtn.title = 'Pehle passphrase set karein'; }
+    document.getElementById('ppSetBtn').addEventListener('click', () => {
+      const v = document.getElementById('ppInput').value;
+      if (!v || v.length < 4) { toast('Passphrase kam az kam 4 characters ki ho', 'error'); return; }
+      localStorage.setItem('doctor_app_vault_pass', v);
+      banner.remove();
+      if (addBtn) { addBtn.disabled = false; addBtn.title = ''; }
+      toast('Passphrase set ho gayi', 'success');
+    });
+    return false;
+  }
+
   function init() {
+    ensurePassphrase();
     bind();
     load();
   }
