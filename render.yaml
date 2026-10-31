@@ -2,7 +2,8 @@
 # Doctor Application - Render Blueprint (free tier)
 #
 # Deploy: Render dashboard -> New -> Blueprint -> pick this GitHub repo.
-# The SQLite database is rebuilt automatically from data/firestore_backup.json
+# The SQLite database is NOT rebuilt from any JSON: the committed
+# data/doctor_app.db is the single source of truth a host adopts.
 # on the first boot (see run.py). Set these env vars in the dashboard if you
 # want them:
 #   DOCTOR_APP_SECRET   - strong random string (session tokens)

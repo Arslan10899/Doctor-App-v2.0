@@ -240,7 +240,8 @@ The login page has a **“Use demo credentials”** button that fills these in f
 **Recommended: Render.com** (PythonAnywhere's free plan only supports WSGI — this app is
 FastAPI/ASGI, so it is not a fit; PythonAnywhere's ASGI support is beta/API-only).
 
-1. Push this folder to a GitHub repo (the 2 MB `data/firestore_backup.json` ships with it).
+1. Push this folder to a GitHub repo (`data/doctor_app.db` + uploaded media ride along —
+   the DB is the single source of truth and a host simply adopts the pushed copy).
 2. On render.com: **New + → Blueprint** → select the repo — it reads `render.yaml`
    (npm-style one-click: `pip install -r backend/requirements.txt`, start `python run.py`).
 3. Done: `https://doctor-app-admin.onrender.com`. Render injects `PORT`/`HOST` and the
@@ -248,9 +249,10 @@ FastAPI/ASGI, so it is not a fit; PythonAnywhere's ASGI support is beta/API-only
 
 How it works on a fresh host:
 
-- the database (SQLite) is rebuilt automatically **once per boot** from
-  `data/firestore_backup.json` (`_autoseed_from_backup` in `backend/main.py`, disable with
-  `DOCTOR_APP_AUTOSEED=0`). `serviceAccountKey.json` is never needed.
+- the database is NOT rebuilt from any JSON any more: the SQLite DB
+  (`data/doctor_app.db`) is committed and **the pushed copy becomes the host's data**.
+  The old Firestore backup import is disabled by default (set
+  `DOCTOR_APP_IMPORT_BACKUP=1` to ever use it). `serviceAccountKey.json` is never needed.
 - the 9 hospital card images (covers + logos) are committed to git under
   `backend/uploads/hospitals/`; on the first boot `_relink_hospital_media()` re-links
   them into `hospital_media`, so the directory cards look the same as local.
@@ -578,13 +580,16 @@ Expected — there are no appointments/payments in the backup; the dashboard sho
 zeros. To visualize data you'd need to import appointments separately.
 
 **"no such column" errors**
-Reset and re-import only from the backup: delete `data/doctor_app.db*`, then run
-`python backend/import_only_from_backup.py`.
+Schema migrations run at every boot (`init_db`). If a very old DB is corrupt,
+restore from git: delete `data/doctor_app.db*` and `git checkout -- data/doctor_app.db`,
+or restore a `~/Doctor-App-v2.0-backups/*.db` copy on the host.
 
 **Want to start from scratch**
 Delete `data/doctor_app.db*` and `backend/uploads/*`, then run
-`python backend/import_only_from_backup.py` (creates schema + imports only from
-`firestore_backup.json`). The app seeds no fake data; the demo login is
+`python backend/import_only_from_backup.py` (only possible with the Firestore
+backup JSON placed at `data/firestore_backup.json` +
+`DOCTOR_APP_IMPORT_BACKUP=1` on the next boot, or run the importer manually).
+The app seeds no fake data; the demo login is
 `admin@doctorapp.com` / `admin123`.
 
 **Browser keeps showing an old page after code changes**
