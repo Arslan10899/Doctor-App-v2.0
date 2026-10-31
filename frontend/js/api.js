@@ -149,7 +149,7 @@ const Api = (() => {
     setUser(null);
     const page = window.location.pathname.split('/').pop();
     /* Version query (?v=2) is not part of the pathname. */
-    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=48');
+    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=49');
   }
 
   return {
@@ -184,6 +184,7 @@ const Api = (() => {
 
     dashboardStats: () => request('/dashboard/stats'),
     cloudStorageUsage: () => request('/cloud-storage/usage'),
+    cloudinaryUsage: () => request('/cloudinary/usage'),
     storageSettings: () => request('/storage/settings'),
     saveStorageSettings: (payload) => request('/storage/settings', { method: 'POST', body: payload }),
     chartAppointments: (months = 12) => request('/dashboard/charts/appointments', { params: { months } }),

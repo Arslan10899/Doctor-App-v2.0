@@ -212,7 +212,7 @@ const Account = (() => {
     Api.setUser(null);
     toast('Signed out.', 'info');
     setTimeout(() => {
-      window.location.replace('login.html?v=48');
+      window.location.replace('login.html?v=49');
     }, 400);
   }
 

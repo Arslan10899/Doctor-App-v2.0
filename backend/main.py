@@ -644,6 +644,56 @@ def save_storage_settings(
 
 
 # ---------------------------------------------------------------------------
+# Cloudinary usage (images) – live tally against the free tier
+# ---------------------------------------------------------------------------
+@app.get("/api/cloudinary/usage")
+def cloudinary_usage(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    if not cloudinary_service.is_enabled():
+        return {"enabled": False}
+    import base64
+    import urllib.error
+    import urllib.request
+
+    url = f"https://api.cloudinary.com/v1_1/{config.CLOUDINARY_CLOUD_NAME}/usage"
+    creds = base64.b64encode(
+        f"{config.CLOUDINARY_API_KEY}:{config.CLOUDINARY_API_SECRET}".encode("utf-8")
+    ).decode("ascii")
+    req = urllib.request.Request(url, headers={"Authorization": "Basic " + creds})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except Exception as exc:  # pragma: no cover - network errors
+        return {"enabled": True, "ok": False, "error": str(exc)[:300]}
+
+    def _part(name):
+        p = data.get(name)
+        if isinstance(p, dict):
+            return int(p.get("usage", 0) or 0), int(p.get("limit", 0) or 0)
+        return int(p or 0), 0
+
+    storage_used, storage_limit = _part("storage")
+    bandwidth_used, bandwidth_limit = _part("bandwidth")
+    transforms_used, transforms_limit = _part("transformations")
+    credits_used, credits_limit = _part("credits")
+
+    return {
+        "enabled": True,
+        "ok": True,
+        "cloud_name": config.CLOUDINARY_CLOUD_NAME,
+        "plan": data.get("plan"),
+        "storage_used_bytes": storage_used,
+        "storage_limit_bytes": storage_limit,
+        "bandwidth_used_bytes": bandwidth_used,
+        "bandwidth_limit_bytes": bandwidth_limit,
+        "transformations_used": transforms_used,
+        "transformations_limit": transforms_limit,
+        "credits_used": credits_used,
+        "credits_limit": credits_limit,
+        "objects": _part("objects")[0],
+    }
+
+
+# ---------------------------------------------------------------------------
 # Resources vault – accounts / credentials for hosting, databases, ads, …
 # Passwords are AES-encrypted at rest (services/vault_crypto.py); list
 # responses never contain them – only the reveal endpoint returns plaintext.
