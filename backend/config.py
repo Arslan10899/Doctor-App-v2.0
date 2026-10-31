@@ -64,6 +64,21 @@ CLOUDINARY_API_KEY = os.environ.get("CLOUDINARY_API_KEY", "")
 CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET", "")
 CLOUDINARY_FOLDER = os.environ.get("CLOUDINARY_FOLDER", "doctor-application")
 
+# storage_settings.json fallback (same file as R2) for Cloudinary keys
+_storage_settings_file = os.path.join(BACKEND_DIR, "storage_settings.json")
+try:
+    if os.path.isfile(_storage_settings_file):
+        with open(_storage_settings_file, "r", encoding="utf-8") as _fh:
+            _cs = (json.load(_fh) or {}).get("cloudinary", {})
+        if _cs:
+            CLOUDINARY_ENABLED = bool(_cs.get("enabled", CLOUDINARY_ENABLED))
+            CLOUDINARY_CLOUD_NAME = str(_cs.get("cloud_name", CLOUDINARY_CLOUD_NAME) or CLOUDINARY_CLOUD_NAME)
+            CLOUDINARY_API_KEY = str(_cs.get("api_key", CLOUDINARY_API_KEY) or CLOUDINARY_API_KEY)
+            CLOUDINARY_API_SECRET = str(_cs.get("api_secret", CLOUDINARY_API_SECRET) or CLOUDINARY_API_SECRET)
+            CLOUDINARY_FOLDER = str(_cs.get("folder", CLOUDINARY_FOLDER) or CLOUDINARY_FOLDER)
+except (OSError, ValueError) as _exc:
+    print(f"[config] storage_settings.json (cloudinary) ignored: {_exc}")
+
 # ---------------------------------------------------------------------------
 # Cloudflare R2 object storage (videos are stored here – free egress).
 # Env vars win, `backend/storage_settings.json` is the file-based fallback

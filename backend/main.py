@@ -554,6 +554,9 @@ def get_storage_settings(user: dict[str, Any] = Depends(current_user)) -> dict[s
     masked_secret = ""
     if config.R2_SECRET_ACCESS_KEY:
         masked_secret = "••••" + config.R2_SECRET_ACCESS_KEY[-4:]
+    masked_cld_secret = ""
+    if config.CLOUDINARY_API_SECRET:
+        masked_cld_secret = "••••" + config.CLOUDINARY_API_SECRET[-4:]
     return {
         "r2": {
             "enabled": bool(config.R2_ENABLED),
@@ -564,7 +567,16 @@ def get_storage_settings(user: dict[str, Any] = Depends(current_user)) -> dict[s
             "bucket": config.R2_BUCKET or "drapp-media",
             "public_base": config.R2_PUBLIC_BASE or "",
         },
+        "cloudinary": {
+            "enabled": bool(config.CLOUDINARY_ENABLED),
+            "cloud_name": config.CLOUDINARY_CLOUD_NAME or "",
+            "api_key": config.CLOUDINARY_API_KEY or "",
+            "api_secret": masked_cld_secret,
+            "secret_set": bool(config.CLOUDINARY_API_SECRET),
+            "folder": config.CLOUDINARY_FOLDER or "doctor-application",
+        },
         "r2_active": r2_storage.enabled(),
+        "cloudinary_active": cloudinary_service.is_enabled(),
         "storage_file": os.path.join(config.BACKEND_DIR, "storage_settings.json"),
     }
 
@@ -576,8 +588,13 @@ def save_storage_settings(
 ) -> dict[str, Any]:
     r2 = (payload or {}).get("r2") or {}
     new_secret = (r2.get("secret") or "").strip()
-    if new_secret.startswith("••••") or new_secret == "":
+    if new_secret.startswith("•") or new_secret == "":
         new_secret = config.R2_SECRET_ACCESS_KEY
+
+    cld = (payload or {}).get("cloudinary") or {}
+    new_cld_secret = (cld.get("api_secret") or "").strip()
+    if new_cld_secret.startswith("•") or new_cld_secret == "":
+        new_cld_secret = config.CLOUDINARY_API_SECRET
 
     settings = {
         "r2": {
@@ -587,7 +604,14 @@ def save_storage_settings(
             "secret": new_secret,
             "bucket": (r2.get("bucket") or "drapp-media").strip(),
             "public_base": (r2.get("public_base") or "").strip().rstrip("/"),
-        }
+        },
+        "cloudinary": {
+            "enabled": bool(cld.get("enabled", False)),
+            "cloud_name": (cld.get("cloud_name") or "").strip(),
+            "api_key": (cld.get("api_key") or "").strip(),
+            "api_secret": new_cld_secret,
+            "folder": (cld.get("folder") or "doctor-application").strip(),
+        },
     }
 
     path = os.path.join(config.BACKEND_DIR, "storage_settings.json")
@@ -605,7 +629,18 @@ def save_storage_settings(
     config.R2_BUCKET = r2cfg["bucket"]
     config.R2_PUBLIC_BASE = r2cfg["public_base"]
 
-    return {"ok": True, "r2_active": r2_storage.enabled()}
+    cldcfg = settings["cloudinary"]
+    config.CLOUDINARY_ENABLED = bool(cldcfg["enabled"])
+    config.CLOUDINARY_CLOUD_NAME = cldcfg["cloud_name"]
+    config.CLOUDINARY_API_KEY = cldcfg["api_key"]
+    config.CLOUDINARY_API_SECRET = cldcfg["api_secret"]
+    config.CLOUDINARY_FOLDER = cldcfg["folder"]
+
+    return {
+        "ok": True,
+        "r2_active": r2_storage.enabled(),
+        "cloudinary_active": cloudinary_service.is_enabled(),
+    }
 
 
 # ---------------------------------------------------------------------------

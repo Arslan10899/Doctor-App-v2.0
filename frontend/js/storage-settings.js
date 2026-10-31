@@ -19,6 +19,17 @@ const StorageSettings = (() => {
         ? 'Current secret: ' + (r2.secret || '••••') + ' (masked). Leave blank to keep.'
         : 'No secret set yet.';
       updateStatus(s.r2_active, s);
+
+      const cld = s.cloudinary || {};
+      document.getElementById('cEnabled').checked = !!cld.enabled;
+      document.getElementById('cCloudName').value = cld.cloud_name || '';
+      document.getElementById('cApiKey').value = cld.api_key || '';
+      document.getElementById('cApiSecret').value = '';
+      document.getElementById('cApiSecret').placeholder = cld.secret_set ? 'Leave blank to keep current (' + (cld.api_secret || '••••') + ')' : 'Paste API secret';
+      document.getElementById('cFolder').value = cld.folder || 'doctor-application';
+      document.getElementById('cSecretHint').textContent = cld.secret_set
+        ? 'Current secret: ' + (cld.api_secret || '••••') + ' (masked). Leave blank to keep.'
+        : 'No secret set yet.';
     } catch (err) {
       toast(err.message, 'error');
     }
@@ -88,6 +99,13 @@ const StorageSettings = (() => {
           secret: document.getElementById('fSecret').value.trim(),
           bucket: document.getElementById('fBucket').value.trim(),
           public_base: document.getElementById('fPublic').value.trim(),
+        },
+        cloudinary: {
+          enabled: document.getElementById('cEnabled').checked,
+          cloud_name: document.getElementById('cCloudName').value.trim(),
+          api_key: document.getElementById('cApiKey').value.trim(),
+          api_secret: document.getElementById('cApiSecret').value.trim(),
+          folder: document.getElementById('cFolder').value.trim(),
         },
       };
       const res = await Api.saveStorageSettings(payload);

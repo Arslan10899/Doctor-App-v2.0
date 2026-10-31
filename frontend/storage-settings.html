@@ -9,9 +9,9 @@
   <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
   <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
 
-  <link rel="stylesheet" href="css/theme.css?v=47" />
-  <link rel="stylesheet" href="css/layout.css?v=47" />
-  <link rel="stylesheet" href="css/components.css?v=47" />
+  <link rel="stylesheet" href="css/theme.css?v=48" />
+  <link rel="stylesheet" href="css/layout.css?v=48" />
+  <link rel="stylesheet" href="css/components.css?v=48" />
 
   <script>
     (function () {
@@ -62,7 +62,44 @@
                 </div>
               </section>
 
-              <!-- Form -->
+              <!-- Cloudinary form -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Cloudinary credentials (images)</div>
+                    <div class="card-description">Free 25 GB/month for image storage + CDN. Leave secret blank to keep current.</div>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <div style="display:grid;gap:.875rem;max-width:40rem;">
+                    <label style="display:flex;align-items:center;gap:.5rem;">
+                      <input type="checkbox" id="cEnabled" />
+                      <span class="text-sm">Cloudinary enabled</span>
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">Cloud name</span>
+                      <input class="input" id="cCloudName" placeholder="your-cloud" autocomplete="off" spellcheck="false" />
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">API key</span>
+                      <input class="input" id="cApiKey" placeholder="123456789012345" autocomplete="off" spellcheck="false" />
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">API secret</span>
+                      <input class="input" id="cApiSecret" type="password" placeholder="Leave blank to keep current" autocomplete="new-password" />
+                      <span class="text-xs text-muted" id="cSecretHint">—</span>
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">Folder</span>
+                      <input class="input" id="cFolder" placeholder="doctor-application" />
+                    </label>
+                  </div>
+                </div>
+              </section>
               <section class="card">
                 <div class="card-header">
                   <div>
@@ -105,7 +142,7 @@
 
                     <div style="display:flex;gap:.5rem;margin-top:.25rem;">
                       <button type="button" class="btn btn-primary" id="saveBtn">Save settings</button>
-                      <a class="btn btn-outline" href="index.html?v=47">Back to dashboard</a>
+                      <a class="btn btn-outline" href="index.html?v=48">Back to dashboard</a>
                     </div>
                   </div>
                 </div>
@@ -129,11 +166,11 @@
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <script src="js/icons.js?v=47"></script>
-  <script src="js/utils.js?v=47"></script>
-  <script src="js/api.js?v=47"></script>
-  <script src="js/theme.js?v=47"></script>
-  <script src="js/layout.js?v=47"></script>
-  <script src="js/storage-settings.js?v=47"></script>
+  <script src="js/icons.js?v=48"></script>
+  <script src="js/utils.js?v=48"></script>
+  <script src="js/api.js?v=48"></script>
+  <script src="js/theme.js?v=48"></script>
+  <script src="js/layout.js?v=48"></script>
+  <script src="js/storage-settings.js?v=48"></script>
 </body>
 </html>
