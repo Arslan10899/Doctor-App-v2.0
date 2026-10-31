@@ -1,18 +1,19 @@
 # --- runtime data ----------------------------------------------------------
-# the SQLite database is rebuilt from data/firestore_backup.json at boot
-data/doctor_app.db
-data/doctor_app.db-wal
-data/doctor_app.db-shm
+# The SQLite database IS the single source of truth:
+# it travels with git (local push -> PythonAnywhere pull).
+# Only journal/wal side files stay out.
+data/*.db-wal
+data/*.db-shm
 data/*.db-journal
 
-# uploaded banners / avatars (ephemeral on hosts – use link-based banners
-# or plug Cloudinary, see README)
-backend/uploads/
-!backend/uploads/.gitkeep
+# The old Firestore backup JSON stays ONLY on the local computer –
+# nothing in the app reads it any more (import needs DOCTOR_APP_IMPORT_BACKUP=1).
+data/firestore_backup.json
+
+# uploaded media (doctor/hospital images+videos) travels with the repo too
 
 # --- secrets – never commit ------------------------------------------------
-# Firebase admin key is banned in this project; only the Firestore backup
-# is the data source (data/firestore_backup.json).
+# Firebase admin key is banned in this project. Auth users live in SQLite.
 serviceAccountKey.json
 *.env
 .env.local

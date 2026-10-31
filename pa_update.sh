@@ -6,7 +6,7 @@
 #     echo 'YOUR_PA_API_TOKEN' > ~/.pa_token
 #
 # Usage (every time GitHub has new code):
-#     cd ~/Doctor-App-v2.0 && git pull && bash pa_update.sh
+#     cd ~/Doctor-App-v2.0 && bash pa_update.sh
 # ----------------------------------------------------------------------------
 set -u
 
@@ -29,10 +29,18 @@ fi
 PY="$(command -v python)"
 echo ">> Python: $PY"
 
-# --- new code from GitHub ----------------------------------------------------
+# --- new code + data from GitHub --------------------------------------------
+# Repo DB is the single source of truth: whatever DB was pushed is adopted.
+# The database that PA had until now is backed up first (~/Doctor-App-v2.0-backups)
+# so panel changes made on PA are never lost, they just get replaced.
 echo ""
-echo "== git pull =="
-git pull || true
+echo "== git sync (fetch + hard reset to origin/main) =="
+if [ -f data/doctor_app.db ]; then
+    mkdir -p "$HOME/Doctor-App-v2.0-backups"
+    cp -f data/doctor_app.db "$HOME/Doctor-App-v2.0-backups/doctor_app_$(date +%Y%m%d_%H%M%S).db"
+fi
+git fetch origin || { echo ">> git fetch fail (net?)"; }
+git reset --hard origin/main
 
 # --- requirements in case they changed ---------------------------------------
 "$PY" -m pip install -q -r backend/requirements.txt 2>/dev/null
