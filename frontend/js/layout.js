@@ -10,40 +10,40 @@ const NAV_SECTIONS = [
   {
     heading: 'Dashboard',
     items: [
-      { label: 'Overview', icon: 'layout-dashboard', href: 'index.html?v=36' },
+      { label: 'Overview', icon: 'layout-dashboard', href: 'index.html?v=37' },
       { label: 'Analytics', icon: 'bar-chart-3', module: 'Analytics' },
     ],
   },
   {
     heading: 'Management',
     items: [
-      { label: 'Doctors', icon: 'stethoscope', href: 'doctors.html?v=36', badge: 'doctors' },
-      { label: 'Hospitals', icon: 'building', href: 'hospitals.html?v=36', badge: 'hospitals' },
-      { label: 'Appointments', icon: 'calendar-days', href: 'appointments.html?v=36', badge: 'duty_slots' },
-      { label: 'Patients', icon: 'users', href: 'patients.html?v=36', badge: 'patients' },
-      { label: 'Payments', icon: 'wallet', href: 'payments.html?v=36' },
+      { label: 'Doctors', icon: 'stethoscope', href: 'doctors.html?v=37', badge: 'doctors' },
+      { label: 'Hospitals', icon: 'building', href: 'hospitals.html?v=37', badge: 'hospitals' },
+      { label: 'Appointments', icon: 'calendar-days', href: 'appointments.html?v=37', badge: 'duty_slots' },
+      { label: 'Patients', icon: 'users', href: 'patients.html?v=37', badge: 'patients' },
+      { label: 'Payments', icon: 'wallet', href: 'payments.html?v=37' },
     ],
   },
   {
     heading: 'Mobile App',
     items: [
-      { label: 'App Users', icon: 'smartphone', href: 'app-users.html?v=36', badge: 'app_users' },
-      { label: 'Notifications', icon: 'bell', href: 'notifications.html?v=36', badge: 'notifications' },
-      { label: 'My Ads', icon: 'megaphone', href: 'my-ads.html?v=36', badge: 'my_ads' },
+      { label: 'App Users', icon: 'smartphone', href: 'app-users.html?v=37', badge: 'app_users' },
+      { label: 'Notifications', icon: 'bell', href: 'notifications.html?v=37', badge: 'notifications' },
+      { label: 'My Ads', icon: 'megaphone', href: 'my-ads.html?v=37', badge: 'my_ads' },
     ],
   },
   {
     heading: 'Clinic',
     items: [
-      { label: 'Specialties', icon: 'sparkles', href: 'specialties.html?v=36' },
+      { label: 'Specialties', icon: 'sparkles', href: 'specialties.html?v=37' },
       { label: 'Departments', icon: 'building-2', module: 'Departments' },
     ],
   },
   {
     heading: 'System',
     items: [
-      { label: 'Roadmap', icon: 'clipboard-list', href: 'roadmap.html?v=36' },
-      { label: 'Settings', icon: 'settings', href: 'account.html?v=36' },
+      { label: 'Roadmap', icon: 'clipboard-list', href: 'roadmap.html?v=37' },
+      { label: 'Settings', icon: 'settings', href: 'account.html?v=37' },
       { label: 'Help Center', icon: 'help-circle', module: 'Help Center' },
     ],
   },
@@ -51,11 +51,11 @@ const NAV_SECTIONS = [
 
 /* Primary navigation shown in the header (desktop). */
 const HEADER_NAV = [
-  { label: 'Overview', href: 'index.html?v=36' },
-  { label: 'Doctors', href: 'doctors.html?v=36' },
-  { label: 'Patients', href: 'patients.html?v=36' },
-  { label: 'Appointments', href: 'appointments.html?v=36' },
-  { label: 'Payments', href: 'payments.html?v=36' },
+  { label: 'Overview', href: 'index.html?v=37' },
+  { label: 'Doctors', href: 'doctors.html?v=37' },
+  { label: 'Patients', href: 'patients.html?v=37' },
+  { label: 'Appointments', href: 'appointments.html?v=37' },
+  { label: 'Payments', href: 'payments.html?v=37' },
   { label: 'Analytics', module: 'Analytics' },
 ];
 
@@ -72,7 +72,7 @@ const Layout = (() => {
 
   function isActive(href) {
     if (!href) return false;
-    /* Versioned links (doctors.html?v=36) share the pathname with plain ones. */
+    /* Versioned links (doctors.html?v=37) share the pathname with plain ones. */
     return currentPage() === String(href).split('?')[0];
   }
 
@@ -190,7 +190,7 @@ const Layout = (() => {
           <span>Menu</span>
         </button>
 
-        <a class="header-brand" href="index.html?v=36">
+        <a class="header-brand" href="index.html?v=37">
           <img class="brand-mark" src="assets/app-icon-64.png?v=18" alt="Doctor App" />
           <span class="header-brand-name">Doctor App</span>
         </a>
@@ -232,8 +232,8 @@ const Layout = (() => {
             </button>
             <div class="dropdown-menu">
               <div class="dropdown-label">${Utils.escape(profile.email || '')}</div>
-              <a class="dropdown-item" href="account.html?v=36">${window.Icon('user-round')} Profile</a>
-              <a class="dropdown-item" href="account.html?v=36">${window.Icon('settings')} Settings</a>
+              <a class="dropdown-item" href="account.html?v=37">${window.Icon('user-round')} Profile</a>
+              <a class="dropdown-item" href="account.html?v=37">${window.Icon('settings')} Settings</a>
               <div class="dropdown-separator"></div>
               <button type="button" class="dropdown-item" id="signOutBtn">${window.Icon('log-out')} Sign out</button>
             </div>
@@ -255,7 +255,7 @@ const Layout = (() => {
         Api.setUser(null);
         toast('Signed out.', 'info');
         setTimeout(() => {
-          window.location.replace('login.html?v=36');
+          window.location.replace('login.html?v=37');
         }, 400);
       });
     }
@@ -344,7 +344,7 @@ const Layout = (() => {
       if (event.key !== 'Enter') return;
       const term = input.value.trim();
       if (!term) return;
-      window.location.href = `doctors.html?v=36&search=${encodeURIComponent(term)}`;
+      window.location.href = `doctors.html?v=37&search=${encodeURIComponent(term)}`;
     });
 
     /* ⌘K / Ctrl+K focuses the search field, like on ui.shadcn.com. */
@@ -434,7 +434,7 @@ const Layout = (() => {
    * ------------------------------------------------------------------- */
   async function requireAuth() {
     if (!Api.getToken()) {
-      window.location.replace('login.html?v=36');
+      window.location.replace('login.html?v=37');
       return false;
     }
     try {
@@ -444,7 +444,7 @@ const Layout = (() => {
     } catch (err) {
       Api.setToken('');
       Api.setUser(null);
-      window.location.replace('login.html?v=36');
+      window.location.replace('login.html?v=37');
       return false;
     }
   }

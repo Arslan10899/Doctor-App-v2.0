@@ -61,10 +61,14 @@
     { status: 'next', title: 'Cloudinary media storage activation', desc: 'Move doctor/hospital media to Cloudinary (25 GB/month free CDN) so uploads stop travelling through git – code already supports it, only env keys remain.', tag: 'Media' },
 
     /* ---------------- Planned ---------------- */
-    { status: 'planned', title: 'Custom domain + Cloudflare', desc: 'Buy the domain, put free Cloudflare DNS/SSL/CDN in front of PythonAnywhere, and add a professional mailbox (Zoho Mail, custom domain).', tag: 'Hosting' },
-    { status: 'planned', title: 'Real push notifications (OneSignal)', desc: 'Send panel notifications to actual app users – OneSignal replaces raw FCM tokens with an unlimited free tier.', tag: 'Notifications' },
-    { status: 'planned', title: 'Appointment email reminders (Brevo)', desc: 'Automated reminder emails before appointments using the free 9,000 emails/month tier.', tag: 'Email' },
-    { status: 'planned', title: 'Public online booking page', desc: 'A no-login booking form backed by the existing appointments API so patients pick hospital duty slots themselves.', tag: 'Panel' },
+    { status: 'planned', title: 'Dr App (Android) MVP', desc: 'Patient-facing Android app: login via app_users, doctors list + full profile (media gallery included), hospital duty slots, in-app notifications – built on the existing FastAPI endpoints.', tag: 'Dr App' },
+    { status: 'planned', title: 'Read-only public API for the mobile app', desc: 'Token-free (or separate app-token), rate-limited GET endpoints so the Android app never needs the admin credentials.', tag: 'Dr App' },
+    { status: 'planned', title: 'R2 master storage for videos (free egress)', desc: 'Cloudflare R2 (10 GB free, unlimited free egress) as the master video store; gumlet/hyperserve (250 GB/mo) for streaming – media_url rows already support any provider.', tag: 'Media' },
+    { status: 'planned', title: 'App distribution plan', desc: 'Direct APK builds first (free – GitHub Releases / AndroidFileHost); Google Play ($25 one-time, not free) once the app is stable.', tag: 'Dr App' },
+    { status: 'planned', title: 'Custom domain + Cloudflare', desc: 'Buy the domain, free Cloudflare DNS/SSL/CDN; Zoho Mail custom-domain mailbox (5 users free).', tag: 'Hosting' },
+    { status: 'planned', title: 'Real push notifications (OneSignal)', desc: 'Unlimited free push to all app users; backend sends via OneSignal API instead of raw FCM tokens.', tag: 'Notifications' },
+    { status: 'planned', title: 'Appointment email reminders (Brevo)', desc: 'Automated reminder emails using the free 9,000 emails/month Brevo tier.', tag: 'Email' },
+    { status: 'planned', title: 'Booking flow for patients (web + Dr App)', desc: 'No-login booking form backed by the existing appointments API so patients pick hospital duty slots on the website or inside the app.', tag: 'Dr App' },
     { status: 'planned', title: 'Richer analytics dashboard', desc: 'Revenue vs appointments charts, specialty breakdown and monthly patient trends for the Overview page.', tag: 'Analytics' },
 
     /* ---------------- Ideas ---------------- */

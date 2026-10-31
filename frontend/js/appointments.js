@@ -42,7 +42,7 @@ const Appointments = (() => {
         .replace(/^Dr\.?\s+/i, '')
         .replace(/\s*\([^)]*\)\s*$/, '')
         .trim();
-      doctorCell = `<a class="appt-doctor appt-doctor-link" href="doctors.html?v=36&search=${encodeURIComponent(core)}" title="Find this doctor">
+      doctorCell = `<a class="appt-doctor appt-doctor-link" href="doctors.html?v=37&search=${encodeURIComponent(core)}" title="Find this doctor">
            ${Utils.escape(s.doctor_name)}
          </a>`;
     }
@@ -51,7 +51,7 @@ const Appointments = (() => {
       <tr>
         <td>
           <div class="cell-strong">
-            <a class="link-cell" href="hospital-profile.html?v=36&id=${encodeURIComponent(s.hospital_id || '')}"
+            <a class="link-cell" href="hospital-profile.html?v=37&id=${encodeURIComponent(s.hospital_id || '')}"
                title="Open hospital profile">${Utils.escape(s.hospital || '—')}</a>
           </div>
           <div class="text-xs text-muted">${Utils.escape(s.city || '')}</div>
