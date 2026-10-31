@@ -2,29 +2,19 @@
 # ----------------------------------------------------------------------------
 # Doctor App - PythonAnywhere deploy/update helper
 #
-# One-time before first run (inside any Bash console):
-#     echo 'YOUR_PA_API_TOKEN' > ~/.pa_token
-#
 # Usage (every time GitHub has new code):
 #     cd ~/Doctor-App-v2.0 && bash pa_update.sh
+#
+# Web app reload happens via "touch" on the WSGI config file (PA watches it),
+# so no `pa` CLI tool is required.
 # ----------------------------------------------------------------------------
 set -u
 
 cd "$HOME/Doctor-App-v2.0" || { echo "Repo folder nahi mila ~/Doctor-App-v2.0"; exit 1; }
 
-# --- API token (file lives in your home folder, never in the repo) ----------
-if [ -f "$HOME/.pa_token" ]; then
-    export API_TOKEN="$(cat "$HOME/.pa_token")"
-fi
-if [ -z "${API_TOKEN:-}" ]; then
-    echo ">> API_TOKEN nahi mila. Ek dafa ye chalao:"
-    echo "   echo 'APNA_PA_TOKEN' > ~/.pa_token"
-    exit 1
-fi
-
 # --- venv -------------------------------------------------------------------
 if command -v workon >/dev/null 2>&1; then
-    workon doctor-app 2>/dev/null || source "$HOME/.virtualenvs/doctor-app/bin/activate"
+    workon doctor-app 2>/dev/null || source "$HOME/.virtualenvs/doctor-app/bin/activate" 2>/dev/null || true
 fi
 PY="$(command -v python)"
 echo ">> Python: $PY"
@@ -38,31 +28,37 @@ echo "== git sync (fetch + hard reset to origin/main) =="
 if [ -f data/doctor_app.db ]; then
     mkdir -p "$HOME/Doctor-App-v2.0-backups"
     cp -f data/doctor_app.db "$HOME/Doctor-App-v2.0-backups/doctor_app_$(date +%Y%m%d_%H%M%S).db"
+    echo "   (PA ka purana DB backup ban gaya)"
 fi
 git fetch origin || { echo ">> git fetch fail (net?)"; }
 git reset --hard origin/main
 
 # --- requirements in case they changed ---------------------------------------
-"$PY" -m pip install -q -r backend/requirements.txt 2>/dev/null
-echo ">> pip: ok"
-
-# --- reload the website -------------------------------------------------------
 echo ""
-echo "== website reload =="
-pa website reload --domain Doctorv2.pythonanywhere.com || true
+echo "== pip install (requirements.txt) =="
+"$PY" -m pip install --user -r backend/requirements.txt
+echo ">> pip: exit code $? (0 = ok)"
+
+# --- reload the website via touch (PA watches the WSGI file) -------------------
+echo ""
+echo "== website reload (touch WSGI config) =="
+WSGI_FILE="$HOME/Doctorv2_pythonanywhere_com_wsgi.py"
+if [ -f "$WSGI_FILE" ]; then
+    touch "$WSGI_FILE"
+    echo "   touched $WSGI_FILE -> PA will reload the web app"
+else
+    echo "   WSGI file nahi mila: $WSGI_FILE"
+    echo "   PA -> Web tab -> green 'Reload' button manually click karo"
+fi
 
 # --- status + last errors -----------------------------------------------------
 echo ""
-echo "== website status =="
-pa website get
-
-echo ""
-echo "== last log lines (errors first) =="
+echo "== last log lines =="
 for f in /var/log/*doctorv2*error.log /var/log/*doctorv2*server.log; do
     [ -f "$f" ] || continue
     echo "---- $f ----"
-    tail -n 20 "$f"
+    tail -n 15 "$f"
 done
 
 echo ""
-echo "== Done. Agar upar red/Traceback dikhe to wo copy kar ke bhejo =="
+echo "== Done. Dashboard refresh karo, R2 card check karo. =="
