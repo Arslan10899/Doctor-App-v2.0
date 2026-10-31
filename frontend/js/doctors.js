@@ -45,7 +45,7 @@ const Doctors = (() => {
             <div style="display:flex;align-items:center;gap:.75rem;">
               ${Utils.avatar(doctor)}
               <div style="min-width:0;">
-                <a class="cell-strong link-cell" href="doctor-profile.html?v=46&id=${encodeURIComponent(doctor.id)}">${Utils.escape(doctor.name)}</a>
+                <a class="cell-strong link-cell" href="doctor-profile.html?v=47&id=${encodeURIComponent(doctor.id)}">${Utils.escape(doctor.name)}</a>
                 <div class="cell-muted text-xs">${Utils.escape(doctor.email)}</div>
               </div>
             </div>
@@ -55,7 +55,7 @@ const Doctors = (() => {
             <div class="cell-muted text-xs">${Utils.escape(doctor.qualification || '—')}</div>
           </td>
           <td>
-            <div class="cell-strong">${Utils.escape(doctor.hospital || '—')}</div>
+            <div class="cell-strong" style="max-width:14rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${Utils.escape(doctor.hospital || '')}">${Utils.escape(doctor.hospital || '—')}</div>
             <div class="cell-muted text-xs">${Utils.escape(doctor.city || '')}</div>
           </td>
           <td>
@@ -372,11 +372,11 @@ const Doctors = (() => {
    * View doctor
    * ------------------------------------------------------------------- */
   async function viewDoctor(id) {
-    window.location.href = `doctor-profile.html?v=46&id=${encodeURIComponent(id)}`;
+    window.location.href = `doctor-profile.html?v=47&id=${encodeURIComponent(id)}`;
   }
 
   function openEditor(id) {
-    window.location.href = `doctor-edit.html?v=46&id=${encodeURIComponent(id)}`;
+    window.location.href = `doctor-edit.html?v=47&id=${encodeURIComponent(id)}`;
   }
 
   function detailRow(iconName, label, value) {

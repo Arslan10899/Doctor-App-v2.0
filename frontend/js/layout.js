@@ -10,42 +10,42 @@ const NAV_SECTIONS = [
   {
     heading: 'Dashboard',
     items: [
-      { label: 'Overview', icon: 'layout-dashboard', href: 'index.html?v=46' },
+      { label: 'Overview', icon: 'layout-dashboard', href: 'index.html?v=47' },
       { label: 'Analytics', icon: 'bar-chart-3', module: 'Analytics' },
     ],
   },
   {
     heading: 'Management',
     items: [
-      { label: 'Doctors', icon: 'stethoscope', href: 'doctors.html?v=46', badge: 'doctors' },
-      { label: 'Hospitals', icon: 'building', href: 'hospitals.html?v=46', badge: 'hospitals' },
-      { label: 'Appointments', icon: 'calendar-days', href: 'appointments.html?v=46', badge: 'duty_slots' },
-      { label: 'Patients', icon: 'users', href: 'patients.html?v=46', badge: 'patients' },
-      { label: 'Payments', icon: 'wallet', href: 'payments.html?v=46' },
+      { label: 'Doctors', icon: 'stethoscope', href: 'doctors.html?v=47', badge: 'doctors' },
+      { label: 'Hospitals', icon: 'building', href: 'hospitals.html?v=47', badge: 'hospitals' },
+      { label: 'Appointments', icon: 'calendar-days', href: 'appointments.html?v=47', badge: 'duty_slots' },
+      { label: 'Patients', icon: 'users', href: 'patients.html?v=47', badge: 'patients' },
+      { label: 'Payments', icon: 'wallet', href: 'payments.html?v=47' },
     ],
   },
   {
     heading: 'Mobile App',
     items: [
-      { label: 'App Users', icon: 'smartphone', href: 'app-users.html?v=46', badge: 'app_users' },
-      { label: 'Notifications', icon: 'bell', href: 'notifications.html?v=46', badge: 'notifications' },
-      { label: 'My Ads', icon: 'megaphone', href: 'my-ads.html?v=46', badge: 'my_ads' },
+      { label: 'App Users', icon: 'smartphone', href: 'app-users.html?v=47', badge: 'app_users' },
+      { label: 'Notifications', icon: 'bell', href: 'notifications.html?v=47', badge: 'notifications' },
+      { label: 'My Ads', icon: 'megaphone', href: 'my-ads.html?v=47', badge: 'my_ads' },
     ],
   },
   {
     heading: 'Clinic',
     items: [
-      { label: 'Specialties', icon: 'sparkles', href: 'specialties.html?v=46' },
+      { label: 'Specialties', icon: 'sparkles', href: 'specialties.html?v=47' },
       { label: 'Departments', icon: 'building-2', module: 'Departments' },
     ],
   },
   {
     heading: 'System',
     items: [
-      { label: 'Roadmap', icon: 'clipboard-list', href: 'roadmap.html?v=46' },
-      { label: 'Resources', icon: 'database', href: 'resources.html?v=46' },
-      { label: 'Storage Settings', icon: 'settings', href: 'storage-settings.html?v=46' },
-      { label: 'Settings', icon: 'settings', href: 'account.html?v=46' },
+      { label: 'Roadmap', icon: 'clipboard-list', href: 'roadmap.html?v=47' },
+      { label: 'Resources', icon: 'database', href: 'resources.html?v=47' },
+      { label: 'Storage Settings', icon: 'settings', href: 'storage-settings.html?v=47' },
+      { label: 'Settings', icon: 'settings', href: 'account.html?v=47' },
       { label: 'Help Center', icon: 'help-circle', module: 'Help Center' },
     ],
   },
@@ -53,11 +53,11 @@ const NAV_SECTIONS = [
 
 /* Primary navigation shown in the header (desktop). */
 const HEADER_NAV = [
-  { label: 'Overview', href: 'index.html?v=46' },
-  { label: 'Doctors', href: 'doctors.html?v=46' },
-  { label: 'Patients', href: 'patients.html?v=46' },
-  { label: 'Appointments', href: 'appointments.html?v=46' },
-  { label: 'Payments', href: 'payments.html?v=46' },
+  { label: 'Overview', href: 'index.html?v=47' },
+  { label: 'Doctors', href: 'doctors.html?v=47' },
+  { label: 'Patients', href: 'patients.html?v=47' },
+  { label: 'Appointments', href: 'appointments.html?v=47' },
+  { label: 'Payments', href: 'payments.html?v=47' },
   { label: 'Analytics', module: 'Analytics' },
 ];
 
@@ -74,7 +74,7 @@ const Layout = (() => {
 
   function isActive(href) {
     if (!href) return false;
-    /* Versioned links (doctors.html?v=46) share the pathname with plain ones. */
+    /* Versioned links (doctors.html?v=47) share the pathname with plain ones. */
     return currentPage() === String(href).split('?')[0];
   }
 
@@ -192,7 +192,7 @@ const Layout = (() => {
           <span>Menu</span>
         </button>
 
-        <a class="header-brand" href="index.html?v=46">
+        <a class="header-brand" href="index.html?v=47">
           <img class="brand-mark" src="assets/app-icon-64.png?v=18" alt="Doctor App" />
           <span class="header-brand-name">Doctor App</span>
         </a>
@@ -234,8 +234,8 @@ const Layout = (() => {
             </button>
             <div class="dropdown-menu">
               <div class="dropdown-label">${Utils.escape(profile.email || '')}</div>
-              <a class="dropdown-item" href="account.html?v=46">${window.Icon('user-round')} Profile</a>
-              <a class="dropdown-item" href="account.html?v=46">${window.Icon('settings')} Settings</a>
+              <a class="dropdown-item" href="account.html?v=47">${window.Icon('user-round')} Profile</a>
+              <a class="dropdown-item" href="account.html?v=47">${window.Icon('settings')} Settings</a>
               <div class="dropdown-separator"></div>
               <button type="button" class="dropdown-item" id="signOutBtn">${window.Icon('log-out')} Sign out</button>
             </div>
@@ -257,7 +257,7 @@ const Layout = (() => {
         Api.setUser(null);
         toast('Signed out.', 'info');
         setTimeout(() => {
-          window.location.replace('login.html?v=46');
+          window.location.replace('login.html?v=47');
         }, 400);
       });
     }
@@ -346,7 +346,7 @@ const Layout = (() => {
       if (event.key !== 'Enter') return;
       const term = input.value.trim();
       if (!term) return;
-      window.location.href = `doctors.html?v=46&search=${encodeURIComponent(term)}`;
+      window.location.href = `doctors.html?v=47&search=${encodeURIComponent(term)}`;
     });
 
     /* ⌘K / Ctrl+K focuses the search field, like on ui.shadcn.com. */
@@ -436,7 +436,7 @@ const Layout = (() => {
    * ------------------------------------------------------------------- */
   async function requireAuth() {
     if (!Api.getToken()) {
-      window.location.replace('login.html?v=46');
+      window.location.replace('login.html?v=47');
       return false;
     }
     try {
@@ -446,7 +446,7 @@ const Layout = (() => {
     } catch (err) {
       Api.setToken('');
       Api.setUser(null);
-      window.location.replace('login.html?v=46');
+      window.location.replace('login.html?v=47');
       return false;
     }
   }
