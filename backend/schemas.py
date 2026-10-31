@@ -251,3 +251,24 @@ class Message(BaseModel):
 
 class VideoLinkCreate(BaseModel):
     url: str = Field(..., description="External video URL (YouTube, Vimeo, or direct mp4)")
+
+
+class ResourceCreate(BaseModel):
+    """New row of the resources vault (password stored encrypted)."""
+    name: str = Field(..., min_length=1, max_length=120)
+    category: str = Field(default="other", max_length=40)
+    purpose: Optional[str] = Field(default=None, max_length=400)
+    url: Optional[str] = Field(default=None, max_length=500)
+    username: Optional[str] = Field(default=None, max_length=200)
+    password: Optional[str] = Field(default=None, max_length=400)
+    comment: Optional[str] = Field(default=None, max_length=2000)
+
+
+class ResourceUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    category: Optional[str] = Field(default=None, max_length=40)
+    purpose: Optional[str] = Field(default=None, max_length=400)
+    url: Optional[str] = Field(default=None, max_length=500)
+    username: Optional[str] = Field(default=None, max_length=200)
+    password: Optional[str] = Field(default=None, max_length=400)
+    comment: Optional[str] = Field(default=None, max_length=2000)

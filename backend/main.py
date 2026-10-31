@@ -35,7 +35,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import config  # noqa: E402
 import database as db  # noqa: E402
 import schemas  # noqa: E402
-from services import cloudinary_service, firebase_service, r2_storage  # noqa: E402
+from services import (
+    cloudinary_service,
+    firebase_service,
+    r2_storage,
+    vault_crypto,
+)  # noqa: E402
 
 
 @asynccontextmanager
@@ -543,6 +548,146 @@ def cloud_storage_usage(user: dict[str, Any] = Depends(current_user)) -> dict[st
             payload.update({"r2_ok": False, "r2_error": str(exc)[:300]})
 
     return payload
+
+
+# ---------------------------------------------------------------------------
+# Resources vault – accounts / credentials for hosting, databases, ads, …
+# Passwords are AES-encrypted at rest (services/vault_crypto.py); list
+# responses never contain them – only the reveal endpoint returns plaintext.
+# ---------------------------------------------------------------------------
+@app.get("/api/resources")
+def list_resources(
+    q: str = "",
+    category: str = "",
+    user: dict[str, Any] = Depends(current_user),
+) -> list[dict[str, Any]]:
+    sql = """
+        SELECT id, name, category, purpose, url, username, comment,
+               created_at, updated_at,
+               CASE WHEN password_enc IS NOT NULL AND password_enc != ''
+                    THEN 1 ELSE 0 END AS has_password
+        FROM resources
+    """
+    clauses: list[str] = []
+    params: list[Any] = []
+    if category:
+        clauses.append("category = ?")
+        params.append(category)
+    if q:
+        like = f"%{q}%"
+        clauses.append("(name LIKE ? OR username LIKE ? OR purpose LIKE ? OR comment LIKE ?)")
+        params += [like, like, like, like]
+    if clauses:
+        sql += " WHERE " + " AND ".join(clauses)
+    sql += " ORDER BY updated_at DESC, id DESC"
+    return db.query_all(sql, tuple(params))
+
+
+@app.post("/api/resources", status_code=201)
+def create_resource(
+    payload: schemas.ResourceCreate,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    try:
+        password_enc = vault_crypto.encrypt(payload.password or "")
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=f"Vault encryption unavailable: {exc}")
+
+    new_id = db.execute(
+        """
+        INSERT INTO resources (name, category, purpose, url, username, password_enc, comment)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            payload.name,
+            payload.category,
+            payload.purpose,
+            payload.url,
+            payload.username,
+            password_enc,
+            payload.comment,
+        ),
+    )
+    return {"id": new_id}
+
+
+def _vault_row_or_404(resource_id: int) -> dict:
+    row = db.query_one(
+        "SELECT id, name, category, purpose, url, username, password_enc, comment "
+        "FROM resources WHERE id = ?",
+        (resource_id,),
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    return row
+
+
+@app.put("/api/resources/{resource_id}")
+def update_resource(
+    resource_id: int,
+    payload: schemas.ResourceUpdate,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    row = _vault_row_or_404(resource_id)
+
+    fields = {
+        "name": payload.name if payload.name is not None else row["name"],
+        "category": payload.category if payload.category is not None else row["category"],
+        "purpose": payload.purpose if payload.purpose is not None else row["purpose"],
+        "url": payload.url if payload.url is not None else row["url"],
+        "username": payload.username if payload.username is not None else row["username"],
+        "comment": payload.comment if payload.comment is not None else row["comment"],
+    }
+    # password: None -> unchanged, "" -> cleared, value -> re-encrypted
+    if payload.password is None:
+        password_enc = row["password_enc"]
+    elif payload.password == "":
+        password_enc = ""
+    else:
+        try:
+            password_enc = vault_crypto.encrypt(payload.password)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=f"Vault encryption unavailable: {exc}")
+
+    db.execute(
+        """
+        UPDATE resources
+        SET name = ?, category = ?, purpose = ?, url = ?, username = ?,
+            password_enc = ?, comment = ?, updated_at = datetime('now')
+        WHERE id = ?
+        """,
+        (
+            fields["name"],
+            fields["category"],
+            fields["purpose"],
+            fields["url"],
+            fields["username"],
+            password_enc,
+            fields["comment"],
+            resource_id,
+        ),
+    )
+    return {"ok": True}
+
+
+@app.delete("/api/resources/{resource_id}")
+def delete_resource(
+    resource_id: int,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    _vault_row_or_404(resource_id)
+    db.execute("DELETE FROM resources WHERE id = ?", (resource_id,))
+    return {"ok": True}
+
+
+@app.get("/api/resources/{resource_id}/reveal")
+def reveal_resource_password(
+    resource_id: int,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    row = _vault_row_or_404(resource_id)
+    password = vault_crypto.decrypt(row["password_enc"])
+    return {"password": password}
 
 
 @app.get("/api/dashboard/charts/appointments")

@@ -149,7 +149,7 @@ const Api = (() => {
     setUser(null);
     const page = window.location.pathname.split('/').pop();
     /* Version query (?v=2) is not part of the pathname. */
-    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=39');
+    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=41');
   }
 
   return {
@@ -233,6 +233,12 @@ const Api = (() => {
     addDoctorVideoLink: (id, url) =>
       request(`/doctors/${id}/media/video-link`, { method: 'POST', body: { url } }),
     deleteDoctorMedia: (mediaId) => request(`/media/${mediaId}`, { method: 'DELETE' }),
+
+    listResources: (params = {}) => request('/resources', { params }),
+    createResource: (payload) => request('/resources', { method: 'POST', body: payload }),
+    updateResource: (id, payload) => request(`/resources/${id}`, { method: 'PUT', body: payload }),
+    deleteResource: (id) => request(`/resources/${id}`, { method: 'DELETE' }),
+    revealResourcePassword: (id) => request(`/resources/${id}/reveal`),
     appUsers: (params = {}) => request('/app-users', { params }),
     appUserTokens: () => request('/app-users/tokens'),
     clearAppUsers: () => request('/app-users', { method: 'DELETE' }),

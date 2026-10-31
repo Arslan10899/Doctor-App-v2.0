@@ -332,6 +332,7 @@ def init_db() -> None:
         _migrate_notifications(conn)
         _migrate_hospital_media(conn)
         _migrate_doctor_media(conn)
+        _migrate_resources(conn)
         _ensure_admin_user(conn)
         conn.commit()
 
@@ -370,6 +371,29 @@ def _migrate_doctor_media(conn: sqlite3.Connection) -> None:
     )
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_docmedia_doctor ON doctor_media(doctor_id, kind)"
+    )
+
+
+def _migrate_resources(conn: sqlite3.Connection) -> None:
+    """Resources vault: hosting / database / ad accounts and in-app assets.
+
+    Passwords are stored encrypted (see services/vault_crypto.py) so the
+    database file can travel with git without leaking credentials."""
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS resources (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            name         TEXT NOT NULL,
+            category     TEXT NOT NULL DEFAULT 'other',
+            purpose      TEXT,
+            url          TEXT,
+            username     TEXT,
+            password_enc TEXT,
+            comment      TEXT,
+            created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
     )
 
 

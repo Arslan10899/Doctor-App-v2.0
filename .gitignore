@@ -22,6 +22,11 @@ serviceAccountKey.json
 # console (~/Doctor-App-v2.0/backend/storage_settings.json); never in git.
 backend/storage_settings.json
 
+# Resources vault encryption key – generated locally on first use. Copy it
+# once to PythonAnywhere; without it the stored passwords cannot be read
+# (and that is by design – DB travels with git, keys never do).
+backend/vault_key.key
+
 # --- python ----------------------------------------------------------------
 __pycache__/
 *.py[cod]

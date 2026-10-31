@@ -55,6 +55,7 @@
     { status: 'done', title: 'Single-source database synced through GitHub', desc: 'data/doctor_app.db and committed uploads travel with the repo: local push → PythonAnywhere adopts it (fetch + hard reset with PA-side backup).', tag: 'Data' },
     { status: 'done', title: 'Detached from the backup JSON', desc: 'No import happens at startup any more; the DB is the only data source. The old import is opt-in via DOCTOR_APP_IMPORT_BACKUP=1.', tag: 'Data' },
     { status: 'done', title: 'Cloud storage usage monitor', desc: 'Dashboard card tallies every R2 object live (total, per-folder, remaining of the 10 GB free tier) plus local disk media — so kitna data barh raha hai hamesha nazar mein.', tag: 'Media' },
+    { status: 'done', title: 'Resources Vault (encrypted credentials)', desc: 'Private vault for hosting/database/ad/streaming accounts: name, category, purpose, URL, username, AES-encrypted password, comment. Passwords only revealed on demand and never travel with git.', tag: 'Vault' },
     { status: 'done', title: 'Stability & QA pass', desc: 'GZip/304/immutable verified under hosting versions, self-healing SQLite connection for async endpoints, lifespan + same-origin hosting fixes.', tag: 'QA' },
 
     /* ---------------- In progress ---------------- */
