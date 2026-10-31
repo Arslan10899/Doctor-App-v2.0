@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 import os
 import re
 import secrets
@@ -543,6 +544,68 @@ def cloud_storage_usage(user: dict[str, Any] = Depends(current_user)) -> dict[st
             payload.update({"r2_ok": False, "r2_error": str(exc)[:300]})
 
     return payload
+
+
+# ---------------------------------------------------------------------------
+# Storage settings (Cloudflare R2 credentials) – editable from the panel
+# ---------------------------------------------------------------------------
+@app.get("/api/storage/settings")
+def get_storage_settings(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    masked_secret = ""
+    if config.R2_SECRET_ACCESS_KEY:
+        masked_secret = "••••" + config.R2_SECRET_ACCESS_KEY[-4:]
+    return {
+        "r2": {
+            "enabled": bool(config.R2_ENABLED),
+            "account_id": config.R2_ACCOUNT_ID or "",
+            "key_id": config.R2_ACCESS_KEY_ID or "",
+            "secret": masked_secret,
+            "secret_set": bool(config.R2_SECRET_ACCESS_KEY),
+            "bucket": config.R2_BUCKET or "drapp-media",
+            "public_base": config.R2_PUBLIC_BASE or "",
+        },
+        "r2_active": r2_storage.enabled(),
+        "storage_file": os.path.join(config.BACKEND_DIR, "storage_settings.json"),
+    }
+
+
+@app.post("/api/storage/settings")
+def save_storage_settings(
+    payload: dict[str, Any],
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    r2 = (payload or {}).get("r2") or {}
+    new_secret = (r2.get("secret") or "").strip()
+    if new_secret.startswith("••••") or new_secret == "":
+        new_secret = config.R2_SECRET_ACCESS_KEY
+
+    settings = {
+        "r2": {
+            "enabled": bool(r2.get("enabled", True)),
+            "account_id": (r2.get("account_id") or "").strip(),
+            "key_id": (r2.get("key_id") or "").strip(),
+            "secret": new_secret,
+            "bucket": (r2.get("bucket") or "drapp-media").strip(),
+            "public_base": (r2.get("public_base") or "").strip().rstrip("/"),
+        }
+    }
+
+    path = os.path.join(config.BACKEND_DIR, "storage_settings.json")
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(settings, fh, indent=2)
+        fh.write("\n")
+    os.replace(tmp, path)
+
+    r2cfg = settings["r2"]
+    config.R2_ENABLED = bool(r2cfg["enabled"])
+    config.R2_ACCOUNT_ID = r2cfg["account_id"]
+    config.R2_ACCESS_KEY_ID = r2cfg["key_id"]
+    config.R2_SECRET_ACCESS_KEY = r2cfg["secret"]
+    config.R2_BUCKET = r2cfg["bucket"]
+    config.R2_PUBLIC_BASE = r2cfg["public_base"]
+
+    return {"ok": True, "r2_active": r2_storage.enabled()}
 
 
 # ---------------------------------------------------------------------------

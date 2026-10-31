@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Storage Settings · Doctor Application</title>
+  <meta name="description" content="Configure Cloudflare R2 (and future storage providers) credentials for video storage." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=45" />
+  <link rel="stylesheet" href="css/layout.css?v=45" />
+  <link rel="stylesheet" href="css/components.css?v=45" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+        <aside class="shell-sidebar" id="sidebar"></aside>
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <div class="page-head">
+                <div>
+                  <h1>Storage Settings</h1>
+                  <p>Cloudflare R2 (video master storage) credentials. Saved here, applied instantly — no console editing, no restart needed.</p>
+                </div>
+              </div>
+
+              <!-- Status -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">R2 status</div>
+                    <div class="card-description">Live connection test</div>
+                  </div>
+                  <div class="card-action">
+                    <span class="badge badge-secondary" id="statusBadge">Checking…</span>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <div class="text-sm text-muted" id="statusInfo">—</div>
+                  <button type="button" class="btn btn-outline btn-sm" id="testBtn" style="margin-top:.5rem;">Test connection</button>
+                </div>
+              </section>
+
+              <!-- Form -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Cloudflare R2 credentials</div>
+                    <div class="card-description">Saved to <code>backend/storage_settings.json</code> (git-ignored). Leave secret blank to keep the existing one.</div>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <div style="display:grid;gap:.875rem;max-width:40rem;">
+                    <label style="display:flex;align-items:center;gap:.5rem;">
+                      <input type="checkbox" id="fEnabled" />
+                      <span class="text-sm">R2 enabled</span>
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">Account ID</span>
+                      <input class="input" id="fAccount" placeholder="32-char hex account id" autocomplete="off" spellcheck="false" />
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">Access Key ID</span>
+                      <input class="input" id="fKey" placeholder="R2 API token access key" autocomplete="off" spellcheck="false" />
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">Secret Access Key</span>
+                      <input class="input" id="fSecret" type="password" placeholder="Leave blank to keep current" autocomplete="new-password" />
+                      <span class="text-xs text-muted" id="secretHint">—</span>
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">Bucket name</span>
+                      <input class="input" id="fBucket" placeholder="drapp-media" />
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">Public base URL (r2.dev)</span>
+                      <input class="input" id="fPublic" placeholder="https://pub-xxxxxxxx.r2.dev" />
+                    </label>
+
+                    <div style="display:flex;gap:.5rem;margin-top:.25rem;">
+                      <button type="button" class="btn btn-primary" id="saveBtn">Save settings</button>
+                      <a class="btn btn-outline" href="index.html?v=45">Back to dashboard</a>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card" style="border-left:3px solid var(--warning);">
+                <div class="card-content text-sm" style="display:flex;gap:.6rem;align-items:flex-start;">
+                  <span style="color:var(--warning);flex:none;margin-top:.1rem;">⚠</span>
+                  <span>
+                    <b>Security:</b> Credentials are stored on the server in <code>backend/storage_settings.json</code> (git-ignored, never committed). The secret is masked in this form after save. Only videos go to R2; images stay on Cloudinary/local.
+                  </span>
+                </div>
+              </section>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script src="js/icons.js?v=45"></script>
+  <script src="js/utils.js?v=45"></script>
+  <script src="js/api.js?v=45"></script>
+  <script src="js/theme.js?v=45"></script>
+  <script src="js/layout.js?v=45"></script>
+  <script src="js/storage-settings.js?v=45"></script>
+</body>
+</html>
