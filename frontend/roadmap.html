@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Roadmap · Doctor Application</title>
+  <meta name="description" content="Work completed so far and the step-by-step update plan for the Doctor Application admin panel." />
+
+  <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
+  <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
+
+  <link rel="stylesheet" href="css/theme.css?v=36" />
+  <link rel="stylesheet" href="css/layout.css?v=36" />
+  <link rel="stylesheet" href="css/components.css?v=36" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('doctor_app_theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- ================= Header (rendered by js/layout.js) ================= -->
+  <header class="site-header" id="topbar"></header>
+
+  <div class="site-main">
+    <div class="shell-container">
+      <div class="shell">
+
+        <!-- ================= Sidebar (rendered by js/layout.js) ================= -->
+        <aside class="shell-sidebar" id="sidebar"></aside>
+
+        <!-- ================= Content column ================= -->
+        <div class="shell-body">
+          <main class="content">
+            <div class="content-inner">
+
+              <!-- Page heading -->
+              <div class="page-head">
+                <div>
+                  <h1>Project Roadmap</h1>
+                  <p>Every completed milestone and the planned next steps for the Doctor Application platform – updated after each release, so we always know what is done and what comes next.</p>
+                  <p class="text-sm text-muted" id="roadmapUpdated" style="margin-top:.35rem;">Last updated: …</p>
+                </div>
+              </div>
+
+              <!-- Legend + summary -->
+              <section class="card">
+                <div class="card-content" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;" id="roadmapLegend"></div>
+              </section>
+
+              <!-- Timeline groups render here -->
+              <div id="roadmapGroups" style="display:flex;flex-direction:column;gap:1.25rem;margin-top:.25rem;"></div>
+
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <style>
+    .rm-section { border-left: 3px solid var(--border); padding-left: 1rem; }
+    .rm-sec--done    { border-left-color: var(--success-color, #16a34a); }
+    .rm-sec--next    { border-left-color: var(--warning, #f59e0b); }
+    .rm-sec--planned { border-left-color: var(--primary, #2563eb); }
+    .rm-sec--idea    { border-left-color: var(--muted-foreground); }
+
+    .rm-item {
+      display: flex; gap: .75rem; align-items: flex-start;
+      padding: .7rem .875rem; border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .rm-item-icon { color: var(--muted-foreground); flex-shrink: 0; margin-top: .125rem; }
+    .rm-item--done .rm-item-icon { color: var(--success-color, #16a34a); }
+    .rm-chip {
+      display: inline-flex; align-items: center;
+      padding: .15rem .55rem; border-radius: 999px;
+      font-size: .7rem; font-weight: 600; letter-spacing: .03em;
+      text-transform: uppercase;
+      border: 1px solid var(--border); color: var(--muted-foreground);
+      white-space: nowrap;
+    }
+    .rm-chip--done    { color: var(--success-color, #16a34a); border-color: color-mix(in oklab, var(--success-color, #16a34a) 40%, transparent); }
+    .rm-chip--next    { color: var(--warning, #f59e0b); border-color: color-mix(in oklab, var(--warning, #f59e0b) 45%, transparent); }
+    .rm-chip--planned { color: var(--primary, #2563eb); border-color: color-mix(in oklab, var(--primary, #2563eb) 40%, transparent); }
+    .rm-chip--idea    { color: var(--muted-foreground); }
+  </style>
+
+  <script src="js/icons.js?v=36"></script>
+  <script src="js/utils.js?v=36"></script>
+  <script src="js/api.js?v=36"></script>
+  <script src="js/theme.js?v=36"></script>
+  <script src="js/layout.js?v=36"></script>
+  <script src="js/roadmap.js?v=36"></script>
+</body>
+</html>
