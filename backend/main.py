@@ -116,11 +116,14 @@ def _relink_hospital_media() -> None:
 
 
 def _autoseed_from_backup() -> None:
-    """On a fresh deployment the database is empty – rebuild it once from
-    the bundled firestore_backup.json so the admin panel is fully usable
-    (no demo data, no serviceAccountKey).  Set DOCTOR_APP_AUTOSEED=0 to
-    disable."""
-    if os.environ.get("DOCTOR_APP_AUTOSEED", "1") != "1":
+    """Manual-use only: the backup file is no longer a live data source.
+
+    All data now lives in the SQLite database. The bundled
+    firestore_backup.json is archived and is NOT read at startup. It can
+    only be imported explicitly (e.g. a brand-new empty deployment that
+    really needs it) by setting the env var DOCTOR_APP_IMPORT_BACKUP=1.
+    """
+    if os.environ.get("DOCTOR_APP_IMPORT_BACKUP", "0") != "1":
         return
     try:
         seeded = db.query_one("SELECT COUNT(*) AS c FROM doctors")["c"] > 0
@@ -130,7 +133,7 @@ def _autoseed_from_backup() -> None:
 
         if not os.path.isfile(BACKUP_PATH):
             return
-        print("[startup] empty database – importing once from " + BACKUP_PATH)
+        print("[startup] DOCTOR_APP_IMPORT_BACKUP=1 – importing from " + BACKUP_PATH)
         import_backup()
     except Exception as exc:  # never let a failed seed break the server
         print(f"[startup] auto-seed skipped: {exc}")
