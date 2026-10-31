@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Storage Settings · Doctor Application</title>
-  <meta name="description" content="Configure Cloudflare R2 (and future storage providers) credentials for video storage." />
+  <meta name="description" content="Configure Cloudflare R2 (videos) and Cloudinary (images) credentials." />
 
   <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
   <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
 
-  <link rel="stylesheet" href="css/theme.css?v=49" />
-  <link rel="stylesheet" href="css/layout.css?v=49" />
-  <link rel="stylesheet" href="css/components.css?v=49" />
+  <link rel="stylesheet" href="css/theme.css?v=50" />
+  <link rel="stylesheet" href="css/layout.css?v=50" />
+  <link rel="stylesheet" href="css/components.css?v=50" />
 
   <script>
     (function () {
@@ -41,70 +41,21 @@
               <div class="page-head">
                 <div>
                   <h1>Storage Settings</h1>
-                  <p>Cloudflare R2 (video master storage) credentials. Saved here, applied instantly — no console editing, no restart needed.</p>
+                  <p>Cloudflare R2 (videos) aur Cloudinary (images) credentials. Panel se save karein — instant apply, no restart.</p>
                 </div>
               </div>
 
-              <!-- Status -->
-              <section class="card">
+              <!-- ================= BOX 1: Cloudflare R2 ================= -->
+              <section class="card" style="border-left:3px solid var(--primary);">
                 <div class="card-header">
                   <div>
-                    <div class="card-title">R2 status</div>
-                    <div class="card-description">Live connection test</div>
+                    <div class="card-title" style="display:flex;align-items:center;gap:.5rem;">
+                      <span style="color:var(--primary);">☁</span> Cloudflare R2 — video storage
+                    </div>
+                    <div class="card-description">Free 10 GB + unlimited egress. Saved to <code>backend/storage_settings.json</code> (git-ignored).</div>
                   </div>
                   <div class="card-action">
-                    <span class="badge badge-secondary" id="statusBadge">Checking…</span>
-                  </div>
-                </div>
-                <div class="card-content">
-                  <div class="text-sm text-muted" id="statusInfo">—</div>
-                  <button type="button" class="btn btn-outline btn-sm" id="testBtn" style="margin-top:.5rem;">Test connection</button>
-                </div>
-              </section>
-
-              <!-- Cloudinary form -->
-              <section class="card">
-                <div class="card-header">
-                  <div>
-                    <div class="card-title">Cloudinary credentials (images)</div>
-                    <div class="card-description">Free 25 GB/month for image storage + CDN. Leave secret blank to keep current.</div>
-                  </div>
-                </div>
-                <div class="card-content">
-                  <div style="display:grid;gap:.875rem;max-width:40rem;">
-                    <label style="display:flex;align-items:center;gap:.5rem;">
-                      <input type="checkbox" id="cEnabled" />
-                      <span class="text-sm">Cloudinary enabled</span>
-                    </label>
-
-                    <label style="display:grid;gap:.25rem;">
-                      <span class="text-sm">Cloud name</span>
-                      <input class="input" id="cCloudName" placeholder="your-cloud" autocomplete="off" spellcheck="false" />
-                    </label>
-
-                    <label style="display:grid;gap:.25rem;">
-                      <span class="text-sm">API key</span>
-                      <input class="input" id="cApiKey" placeholder="123456789012345" autocomplete="off" spellcheck="false" />
-                    </label>
-
-                    <label style="display:grid;gap:.25rem;">
-                      <span class="text-sm">API secret</span>
-                      <input class="input" id="cApiSecret" type="password" placeholder="Leave blank to keep current" autocomplete="new-password" />
-                      <span class="text-xs text-muted" id="cSecretHint">—</span>
-                    </label>
-
-                    <label style="display:grid;gap:.25rem;">
-                      <span class="text-sm">Folder</span>
-                      <input class="input" id="cFolder" placeholder="doctor-application" />
-                    </label>
-                  </div>
-                </div>
-              </section>
-              <section class="card">
-                <div class="card-header">
-                  <div>
-                    <div class="card-title">Cloudflare R2 credentials</div>
-                    <div class="card-description">Saved to <code>backend/storage_settings.json</code> (git-ignored). Leave secret blank to keep the existing one.</div>
+                    <span class="badge badge-secondary" id="r2StatusBadge">Checking…</span>
                   </div>
                 </div>
                 <div class="card-content">
@@ -141,9 +92,60 @@
                     </label>
 
                     <div style="display:flex;gap:.5rem;margin-top:.25rem;">
-                      <button type="button" class="btn btn-primary" id="saveBtn">Save settings</button>
-                      <a class="btn btn-outline" href="index.html?v=49">Back to dashboard</a>
+                      <button type="button" class="btn btn-primary" id="saveR2Btn">Save R2</button>
+                      <button type="button" class="btn btn-outline" id="testR2Btn">Test connection</button>
                     </div>
+                    <div class="text-xs text-muted" id="r2StatusInfo">—</div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ================= BOX 2: Cloudinary ================= -->
+              <section class="card" style="border-left:3px solid var(--primary);">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title" style="display:flex;align-items:center;gap:.5rem;">
+                      <span style="color:var(--primary);">🖼</span> Cloudinary — image storage
+                    </div>
+                    <div class="card-description">Free 25 GB/month storage + 25 GB bandwidth. Images CDN se serve hongi.</div>
+                  </div>
+                  <div class="card-action">
+                    <span class="badge badge-secondary" id="cldStatusBadge">Checking…</span>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <div style="display:grid;gap:.875rem;max-width:40rem;">
+                    <label style="display:flex;align-items:center;gap:.5rem;">
+                      <input type="checkbox" id="cEnabled" />
+                      <span class="text-sm">Cloudinary enabled</span>
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">Cloud name</span>
+                      <input class="input" id="cCloudName" placeholder="your-cloud" autocomplete="off" spellcheck="false" />
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">API key</span>
+                      <input class="input" id="cApiKey" placeholder="123456789012345" autocomplete="off" spellcheck="false" />
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">API secret</span>
+                      <input class="input" id="cApiSecret" type="password" placeholder="Leave blank to keep current" autocomplete="new-password" />
+                      <span class="text-xs text-muted" id="cSecretHint">—</span>
+                    </label>
+
+                    <label style="display:grid;gap:.25rem;">
+                      <span class="text-sm">Folder</span>
+                      <input class="input" id="cFolder" placeholder="doctor-application" />
+                    </label>
+
+                    <div style="display:flex;gap:.5rem;margin-top:.25rem;">
+                      <button type="button" class="btn btn-primary" id="saveCldBtn">Save Cloudinary</button>
+                      <button type="button" class="btn btn-outline" id="testCldBtn">Test connection</button>
+                    </div>
+                    <div class="text-xs text-muted" id="cldStatusInfo">—</div>
                   </div>
                 </div>
               </section>
@@ -152,10 +154,14 @@
                 <div class="card-content text-sm" style="display:flex;gap:.6rem;align-items:flex-start;">
                   <span style="color:var(--warning);flex:none;margin-top:.1rem;">⚠</span>
                   <span>
-                    <b>Security:</b> Credentials are stored on the server in <code>backend/storage_settings.json</code> (git-ignored, never committed). The secret is masked in this form after save. Only videos go to R2; images stay on Cloudinary/local.
+                    <b>Security:</b> Credentials server pe <code>backend/storage_settings.json</code> mein save hote hain (git-ignored, never committed). Secret masked dikhata hai. Only videos R2 pe; images Cloudinary pe.
                   </span>
                 </div>
               </section>
+
+              <div style="margin-top:1rem;">
+                <a class="btn btn-outline" href="index.html?v=50">← Back to dashboard</a>
+              </div>
 
             </div>
           </main>
@@ -166,11 +172,11 @@
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <script src="js/icons.js?v=49"></script>
-  <script src="js/utils.js?v=49"></script>
-  <script src="js/api.js?v=49"></script>
-  <script src="js/theme.js?v=49"></script>
-  <script src="js/layout.js?v=49"></script>
-  <script src="js/storage-settings.js?v=49"></script>
+  <script src="js/icons.js?v=50"></script>
+  <script src="js/utils.js?v=50"></script>
+  <script src="js/api.js?v=50"></script>
+  <script src="js/theme.js?v=50"></script>
+  <script src="js/layout.js?v=50"></script>
+  <script src="js/storage-settings.js?v=50"></script>
 </body>
 </html>

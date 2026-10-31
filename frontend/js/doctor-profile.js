@@ -412,7 +412,7 @@
 
       /* Edit link */
       const editLink = $('#editProfile');
-      if (editLink) editLink.setAttribute('href', `doctor-edit.html?v=49&id=${encodeURIComponent(d.id)}`);
+      if (editLink) editLink.setAttribute('href', `doctor-edit.html?v=50&id=${encodeURIComponent(d.id)}`);
     } catch (err) {
       profileContent.style.display = 'none';
       profileError.style.display = 'flex';
