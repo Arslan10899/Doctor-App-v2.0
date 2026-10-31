@@ -1445,6 +1445,23 @@ def list_app_user_tokens(
     }
 
 
+@app.delete("/api/app-users")
+def delete_all_app_users(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    """Remove every app-user account (registered accounts + device tokens).
+
+    Accounts that were deleted in the panel will not come back unless the
+    backup is re-imported on a fresh database; new registrations from the
+    mobile app will show up here again automatically.
+    """
+    row = db.query_one("SELECT COUNT(*) AS c FROM app_users")
+    count = int(row["c"]) if row else 0
+    db.execute("DELETE FROM app_users")
+    return {
+        "message": f"{count} app-user account(s) remove ho gaye",
+        "removed": count,
+    }
+
+
 @app.get("/api/notifications")
 def list_notifications(
     search: Optional[str] = Query(default=None),

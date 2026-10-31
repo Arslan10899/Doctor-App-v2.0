@@ -149,7 +149,7 @@ const Api = (() => {
     setUser(null);
     const page = window.location.pathname.split('/').pop();
     /* Version query (?v=2) is not part of the pathname. */
-    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=34');
+    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=35');
   }
 
   return {
@@ -234,6 +234,7 @@ const Api = (() => {
     deleteDoctorMedia: (mediaId) => request(`/media/${mediaId}`, { method: 'DELETE' }),
     appUsers: (params = {}) => request('/app-users', { params }),
     appUserTokens: () => request('/app-users/tokens'),
+    clearAppUsers: () => request('/app-users', { method: 'DELETE' }),
     notifications: (params = {}) => request('/notifications', { params }),
     sendNotification: (payload) => request('/notifications', { method: 'POST', body: payload }),
     deleteNotification: (id) => request(`/notifications/${id}`, { method: 'DELETE' }),

@@ -192,6 +192,24 @@ const AppUsers = (() => {
       }
     });
 
+    /* remove every app-user account (double confirm – destructive) */
+    $('#clearAppUsersBtn')?.addEventListener('click', async () => {
+      if (!confirm('Sare app-user accounts remove karein? (device tokens + registered accounts)')) return;
+      if (!confirm('Ye action wapas nahi hoga. Pehli confirm karein: sab accounts delete?')) return;
+      const btn = $('#clearAppUsersBtn');
+      btn.disabled = true;
+      try {
+        const res = await Api.clearAppUsers();
+        toast(res.message || 'Sare app users remove ho gaye.', 'success');
+        state.page = 1;
+        await load();
+      } catch (err) {
+        toast(err.message || 'Remove nahi hua.', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
     load();
   }
 
