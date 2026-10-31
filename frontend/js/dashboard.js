@@ -51,7 +51,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_doctors),
         icon: 'stethoscope',
         accent: 'azure',
-        href: 'doctors.html?v=43',
+        href: 'doctors.html?v=44',
         pill: `${Utils.number(stats.active_doctors)} active`,
         pillTone: 'up',
         foot: `~${formatBytes(tablesIn.doctors || 0)} in database · ${Utils.number(stats.total_cities)} cities`,
@@ -61,7 +61,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_patients),
         icon: 'users',
         accent: 'violet',
-        href: 'patients.html?v=43',
+        href: 'patients.html?v=44',
         pill: `${stats.avg_rating} avg rating`,
         foot: 'Registered in the clinic',
       }),
@@ -70,7 +70,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.today_appointments),
         icon: 'calendar-days',
         accent: 'green',
-        href: 'appointments.html?v=43',
+        href: 'appointments.html?v=44',
         pill: `${Utils.number(stats.completed_appointments)} completed`,
         pillTone: 'up',
         foot: `${Utils.number(stats.pending_appointments)} pending · ${Utils.number(stats.cancelled_appointments)} cancelled`,
@@ -80,7 +80,7 @@ const Dashboard = (() => {
         value: Utils.money(stats.total_revenue, { compact: true }),
         icon: 'circle-dollar-sign',
         accent: 'neutral',
-        href: 'payments.html?v=43',
+        href: 'payments.html?v=44',
         pill: `${Utils.number(stats.total_appointments)} appointments`,
         foot: stats.top_specialty ? `Top: ${stats.top_specialty}` : 'All time earnings',
       }),
@@ -89,7 +89,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_hospitals),
         icon: 'building',
         accent: 'amber',
-        href: 'hospitals.html?v=43',
+        href: 'hospitals.html?v=44',
         pill: 'Directory',
         foot: 'Imported from the backup',
       }),
@@ -98,7 +98,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_duty_slots),
         icon: 'calendar-check',
         accent: 'violet',
-        href: 'appointments.html?v=43',
+        href: 'appointments.html?v=44',
         pill: 'OPD / OT',
         foot: 'Hospital weekly schedule',
       }),
@@ -107,7 +107,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_app_users),
         icon: 'smartphone',
         accent: 'azure',
-        href: 'app-users.html?v=43',
+        href: 'app-users.html?v=44',
         pill: `${Utils.number(stats.registered_app_users)} registered`,
         pillTone: 'up',
         foot: 'Rest are push tokens',
@@ -117,7 +117,7 @@ const Dashboard = (() => {
         value: Utils.number(stats.total_notifications),
         icon: 'bell',
         accent: 'rose',
-        href: 'notifications.html?v=43',
+        href: 'notifications.html?v=44',
         pill: `${Utils.number(stats.total_backup_promos)} promos`,
         foot: 'Alerts on the mobile app',
       }),
@@ -406,12 +406,12 @@ const Dashboard = (() => {
     const used = formatBytes(u.r2_total_bytes);
     const free = formatBytes(u.free_storage_bytes);
     const pct = Math.max(0, Math.min(100, Math.round((u.r2_usage_ratio || 0) * 100)));
-    badge.textContent = `${used} / ${free}`;
-    badge.style.color = pct >= 80 ? 'var(--destructive)' : pct >= 60 ? 'var(--warning)' : 'var(--success)';
+    badge.textContent = `${pct}% used (${used} / ${free})`;
+    badge.style.color = pct >= 90 ? 'var(--destructive)' : pct >= 75 ? 'var(--warning)' : pct >= 50 ? 'var(--warning)' : 'var(--success)';
 
     barWrap.hidden = false;
-    bar.style.width = `${Math.max(1, pct)}%`;
-    bar.style.background = pct >= 80 ? 'var(--destructive)' : pct >= 60 ? 'var(--warning)' : 'var(--primary)';
+    bar.style.width = `${Math.max(pct === 0 ? 0 : 1, pct)}%`;
+    bar.style.background = pct >= 90 ? 'var(--destructive)' : pct >= 75 ? 'var(--warning)' : pct >= 50 ? 'var(--warning)' : 'var(--primary)';
 
     const folders = Object.entries(u.r2_folders || {});
     const row = (label, value, small) =>
@@ -425,11 +425,19 @@ const Dashboard = (() => {
       .map(([name, v]) => row(name, formatBytes(v.bytes), `${Utils.number(v.count)} file${v.count === 1 ? '' : 's'}`))
       .join('');
 
+    const tierMsg =
+      pct >= 90 ? '🚨 Almost full — clean up old videos or upgrade before hitting 10 GB!' :
+      pct >= 75 ? '⚠️ Approaching the 10 GB free limit — consider deleting unused videos.' :
+      pct >= 50 ? '🟡 Halfway there — plenty of space left, but keep an eye on it.' :
+      pct >= 25 ? '🟢 Comfortable usage — ' + (100 - pct) + '% of the free tier still free.' :
+      '🟢 Plenty of space — ' + (100 - pct) + '% of the 10 GB free tier remaining.';
+
     const info = document.getElementById('cloudInfo');
     if (info) {
       info.innerHTML =
-        `Bucket <b>drapp-media</b> · ${Utils.number(u.r2_objects)} objects · free mein ${formatBytes(u.free_storage_bytes - u.r2_total_bytes)} bacha hai` +
-        (pct >= 80 ? ' — <b style="color:var(--destructive);">free limit ke qareeb, video size dekh lein!</b>' : '');
+        `Bucket <b>drapp-media</b> · ${Utils.number(u.r2_objects)} objects · ` +
+        `<b>${pct}% used</b> of 10 GB free tier · ${formatBytes(u.free_storage_bytes - u.r2_total_bytes)} free · ` +
+        tierMsg;
     }
 
     lines.innerHTML =
