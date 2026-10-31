@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import config  # noqa: E402
 import database as db  # noqa: E402
 import schemas  # noqa: E402
-from services import cloudinary_service, firebase_service  # noqa: E402
+from services import cloudinary_service, firebase_service, r2_storage  # noqa: E402
 
 
 @asynccontextmanager
@@ -491,6 +491,58 @@ def dashboard_stats(user: dict[str, Any] = Depends(current_user)) -> dict[str, A
         "total_backup_promos": total_backup_promos,
         "storage": storage,
     }
+
+
+@app.get("/api/cloud-storage/usage")
+def cloud_storage_usage(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    """Live tally of what is held in Cloudflare R2 against the free tier.
+
+    Also reports the local uploads dir so the git-tracked media stays
+    visible. One call = one R2 Class B op, so the panel fetches this once
+    per page load and re-fetches only on the Refresh button.
+    """
+    free_storage = 10 * 1024 * 1024 * 1024      # 10 GB/month on the R2 free tier
+    free_class_a = 1_000_000                    # write/delete ops / month
+    free_class_b = 10_000_000                   # read ops / month
+
+    locals_bytes = 0
+    locals_files = 0
+    for root, _dirs, names in os.walk(config.UPLOAD_DIR):
+        for name in names:
+            try:
+                locals_bytes += os.path.getsize(os.path.join(root, name))
+                locals_files += 1
+            except OSError:
+                pass
+
+    payload: dict[str, Any] = {
+        "r2_enabled": r2_storage.enabled(),
+        "bucket": config.R2_BUCKET if r2_storage.enabled() else None,
+        "free_storage_bytes": free_storage,
+        "free_class_a": free_class_a,
+        "free_class_b": free_class_b,
+        "local_uploads_bytes": locals_bytes,
+        "local_uploads_files": locals_files,
+    }
+
+    if payload["r2_enabled"]:
+        try:
+            usage = r2_storage.usage()
+            payload.update(
+                {
+                    "r2_ok": True,
+                    "r2_total_bytes": usage["total_bytes"],
+                    "r2_objects": usage["objects"],
+                    "r2_folders": usage["folders"],
+                    "r2_free_remaining_bytes": max(0, free_storage - usage["total_bytes"]),
+                    "r2_usage_ratio": round(usage["total_bytes"] / free_storage, 4),
+                }
+            )
+        except Exception as exc:  # pragma: no cover – pretend creds / network
+            print(f"[cloud-storage] R2 usage failed: {exc}")
+            payload.update({"r2_ok": False, "r2_error": str(exc)[:300]})
+
+    return payload
 
 
 @app.get("/api/dashboard/charts/appointments")

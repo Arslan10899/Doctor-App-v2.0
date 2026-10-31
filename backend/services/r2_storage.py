@@ -33,7 +33,7 @@ row-level compatible.
 from __future__ import annotations
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 import config
 
@@ -85,6 +85,45 @@ def delete_object(key: str) -> bool:
     except Exception as exc:  # pragma: no cover - network errors are logged
         logger.error("R2 delete failed for %s: %s", key, exc)
         return False
+
+
+def usage() -> dict[str, Any]:
+    """Tally every object in the bucket (paginated ListObjectsV2).
+
+    Returns {"total_bytes", "objects", "folders": {prefix: {"bytes", "count"}}}.
+    Raises on failure so the caller can decide what to show.
+    Each call is one Class B operation against the R2 free tier – callers
+    should not hammer this endpoint.
+    """
+    client = _client()
+    total_bytes = 0
+    total_count = 0
+    folders: dict[str, dict[str, int]] = {}
+
+    token: Optional[str] = None
+    while True:
+        kwargs: dict[str, Any] = {"Bucket": config.R2_BUCKET, "MaxKeys": 1000}
+        if token:
+            kwargs["ContinuationToken"] = token
+        response = client.list_objects_v2(**kwargs)
+        for obj in response.get("Contents", []) or []:
+            size = int(obj.get("Size", 0) or 0)
+            key = obj.get("Key", "")
+            top = key.split("/", 1)[0] if "/" in key else "(root)"
+            folder = folders.setdefault(top, {"bytes": 0, "count": 0})
+            folder["bytes"] += size
+            folder["count"] += 1
+            total_bytes += size
+            total_count += 1
+        token = response.get("NextContinuationToken")
+        if not token or not response.get("IsTruncated"):
+            break
+
+    return {
+        "total_bytes": total_bytes,
+        "objects": total_count,
+        "folders": dict(sorted(folders.items(), key=lambda kv: -kv[1]["bytes"])),
+    }
 
 
 def key_from_public_url(url: str) -> Optional[str]:
