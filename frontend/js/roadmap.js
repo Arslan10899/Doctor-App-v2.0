@@ -57,13 +57,14 @@
     { status: 'done', title: 'Stability & QA pass', desc: 'GZip/304/immutable verified under hosting versions, self-healing SQLite connection for async endpoints, lifespan + same-origin hosting fixes.', tag: 'QA' },
 
     /* ---------------- In progress ---------------- */
+    { status: 'next', title: 'R2 master storage for videos (free egress)', desc: 'Code integration complete: video uploads now try Cloudflare R2 first (10 GB free, unlimited free egress) with automatic Cloudinary/local fallback and R2-aware deletion. Waiting on the bucket + API token to go live.', tag: 'Media' },
     { status: 'next', title: 'App Users re-seeding', desc: 'Old accounts removed on request; fresh, real accounts arrive once the updated mobile app and new rules take effect.', tag: 'App Users' },
-    { status: 'next', title: 'Cloudinary media storage activation', desc: 'Move doctor/hospital media to Cloudinary (25 GB/month free CDN) so uploads stop travelling through git – code already supports it, only env keys remain.', tag: 'Media' },
+    { status: 'next', title: 'Cloudinary media storage activation', desc: 'Move doctor/hospital images to Cloudinary (25 GB/month free CDN) so uploads stop travelling through git – code already supports it, only env keys remain.', tag: 'Media' },
 
     /* ---------------- Planned ---------------- */
     { status: 'planned', title: 'Dr App (Android) MVP', desc: 'Patient-facing Android app: login via app_users, doctors list + full profile (media gallery included), hospital duty slots, in-app notifications – built on the existing FastAPI endpoints.', tag: 'Dr App' },
     { status: 'planned', title: 'Read-only public API for the mobile app', desc: 'Token-free (or separate app-token), rate-limited GET endpoints so the Android app never needs the admin credentials.', tag: 'Dr App' },
-    { status: 'planned', title: 'R2 master storage for videos (free egress)', desc: 'Cloudflare R2 (10 GB free, unlimited free egress) as the master video store; gumlet/hyperserve (250 GB/mo) for streaming – media_url rows already support any provider.', tag: 'Media' },
+    { status: 'planned', title: 'Video streaming via gumlet / hyperserve', desc: 'Once R2 playback is confirmed, stream through gumlet (250 GB/mo free) for adaptive bitrate, thumbnails and anti-scraping.', tag: 'Media' },
     { status: 'planned', title: 'App distribution plan', desc: 'Direct APK builds first (free – GitHub Releases / AndroidFileHost); Google Play ($25 one-time, not free) once the app is stable.', tag: 'Dr App' },
     { status: 'planned', title: 'Custom domain + Cloudflare', desc: 'Buy the domain, free Cloudflare DNS/SSL/CDN; Zoho Mail custom-domain mailbox (5 users free).', tag: 'Hosting' },
     { status: 'planned', title: 'Real push notifications (OneSignal)', desc: 'Unlimited free push to all app users; backend sends via OneSignal API instead of raw FCM tokens.', tag: 'Notifications' },
