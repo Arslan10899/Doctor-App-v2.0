@@ -149,7 +149,7 @@ const Api = (() => {
     setUser(null);
     const page = window.location.pathname.split('/').pop();
     /* Version query (?v=2) is not part of the pathname. */
-    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=45');
+    if (page.split('?')[0] !== 'login.html') window.location.replace('login.html?v=46');
   }
 
   return {

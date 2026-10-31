@@ -14,7 +14,7 @@ const Specialties = (() => {
   const $ = (s) => document.querySelector(s);
 
   function deptRow(d) {
-    const link = `doctors.html?v=45&specialty=${encodeURIComponent(d.name)}`;
+    const link = `doctors.html?v=46&specialty=${encodeURIComponent(d.name)}`;
     return `
       <tr>
         <td>

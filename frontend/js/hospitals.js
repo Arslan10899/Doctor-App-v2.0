@@ -128,7 +128,7 @@ const Hospitals = (() => {
   function card(h) {
     /* Every card (and each metric inside it) now opens the hospital's own
        profile page – #doctors / #slots anchors scroll straight to the section. */
-    const profile = `hospital-profile.html?v=45&id=${encodeURIComponent(h.id)}`;
+    const profile = `hospital-profile.html?v=46&id=${encodeURIComponent(h.id)}`;
     const specialties = Array.isArray(h.specialties) ? h.specialties.slice(0, 3) : [];
     const moreSpecialties = (h.specialties || []).length - specialties.length;
 

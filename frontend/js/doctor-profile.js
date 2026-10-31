@@ -412,7 +412,7 @@
 
       /* Edit link */
       const editLink = $('#editProfile');
-      if (editLink) editLink.setAttribute('href', `doctor-edit.html?v=45&id=${encodeURIComponent(d.id)}`);
+      if (editLink) editLink.setAttribute('href', `doctor-edit.html?v=46&id=${encodeURIComponent(d.id)}`);
     } catch (err) {
       profileContent.style.display = 'none';
       profileError.style.display = 'flex';
@@ -437,6 +437,36 @@
 
   function isDirectVideoUrl(url) {
     return /\.(mp4|webm|m4v|mov|ogg)(\?|#|$)/i.test(String(url));
+  }
+
+  function openVideoPlayer({ url, kind, provider }) {
+    const backdrop = document.getElementById('videoModalBackdrop');
+    const body = document.getElementById('videoModalBody');
+    const title = document.getElementById('videoModalTitle');
+    if (!backdrop || !body) return;
+    let html = '';
+    if (provider === 'link') {
+      const yt = youTubeEmbed(url);
+      if (yt) {
+        html = `<iframe src="${Utils.escape(yt)}?autoplay=1" allow="autoplay; fullscreen" allowfullscreen style="width:100%;height:100%;border:0;"></iframe>`;
+      } else if (isDirectVideoUrl(url)) {
+        html = `<video controls autoplay src="${Utils.escape(url)}" style="width:100%;height:100%;"></video>`;
+      } else {
+        html = `<div style="color:#fff;padding:2rem;text-align:center;">Is link ko direct play nahi kar sakte.<br><a href="${Utils.escape(url)}" target="_blank" rel="noopener" style="color:#93c5fd;">Browser mein open karein ↗</a></div>`;
+      }
+    } else {
+      html = `<video controls autoplay src="${Utils.escape(url)}" style="width:100%;height:100%;"></video>`;
+    }
+    body.innerHTML = html;
+    if (title) title.textContent = kind === 'youtube' ? 'YouTube video' : 'Video';
+    backdrop.classList.remove('hidden');
+  }
+
+  function closeVideoPlayer() {
+    const backdrop = document.getElementById('videoModalBackdrop');
+    const body = document.getElementById('videoModalBody');
+    if (body) body.innerHTML = '';
+    if (backdrop) backdrop.classList.add('hidden');
   }
 
   function renderDoctorMedia(media) {
@@ -464,26 +494,30 @@
     if (vidBox) {
       vidBox.innerHTML = videos
         .map((m) => {
-          let player;
+          let thumb = '';
+          let kind = 'video';
           if (m.provider === 'link') {
             const yt = youTubeEmbed(m.url);
             if (yt) {
-              player = `<iframe src="${Utils.escape(yt)}" loading="lazy" allowfullscreen title="Video"></iframe>`;
+              const idMatch = m.url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,20})/i);
+              const yid = idMatch ? idMatch[1] : '';
+              thumb = yid ? `https://img.youtube.com/vi/${yid}/hqdefault.jpg` : '';
+              kind = 'youtube';
             } else if (isDirectVideoUrl(m.url)) {
-              player = `<video controls preload="metadata" src="${Utils.escape(m.url)}"></video>`;
+              kind = 'direct';
             } else {
-              player = null; /* unknown host – show the link only */
+              kind = 'link';
             }
           } else {
-            player = `<video controls preload="metadata" src="${Utils.escape(m.url)}"></video>`;
+            kind = 'direct';
           }
+          const thumbHtml = thumb
+            ? `<img src="${Utils.escape(thumb)}" alt="Video thumbnail" loading="lazy" />`
+            : `<video preload="metadata" muted src="${Utils.escape(m.url)}" style="width:100%;height:100%;object-fit:cover;"></video>`;
           return `
-          <div class="media-video">
-            ${player || ''}
-            <div class="media-link">
-              <div class="text-xs text-muted">Video</div>
-              <a href="${Utils.escape(m.url)}" target="_blank" rel="noopener noreferrer" class="text-sm">Open video &#8599;</a>
-            </div>
+          <div class="media-tile media-video-tile" data-video-id="${Number(m.id)}" data-video-url="${Utils.escape(m.url)}" data-video-kind="${kind}" data-video-provider="${Utils.escape(m.provider || '')}" title="Play video">
+            ${thumbHtml}
+            <span class="media-play-badge">${window.Icon('play')}</span>
             <button type="button" class="media-delete" data-id="${Number(m.id)}" title="Delete video">&#10005;</button>
           </div>`;
         })
@@ -596,12 +630,30 @@
         setMediaBusy(false);
       }
     };
+    const handleVideoClick = (ev) => {
+      const delBtn = ev.target.closest('.media-delete');
+      if (delBtn) {
+        handleDeleteClick(ev);
+        return;
+      }
+      const tile = ev.target.closest('.media-video-tile');
+      if (!tile) return;
+      openVideoPlayer({
+        url: tile.dataset.videoUrl,
+        kind: tile.dataset.videoKind,
+        provider: tile.dataset.videoProvider,
+      });
+    };
     $('#mediaImages').addEventListener('click', handleDeleteClick);
-    $('#mediaVideos').addEventListener('click', handleDeleteClick);
+    $('#mediaVideos').addEventListener('click', handleVideoClick);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     if (id) setupMedia(id);
     load();
+    const closeBtn = document.getElementById('videoModalClose');
+    const backdrop = document.getElementById('videoModalBackdrop');
+    if (closeBtn) closeBtn.addEventListener('click', closeVideoPlayer);
+    if (backdrop) backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeVideoPlayer(); });
   });
 })();

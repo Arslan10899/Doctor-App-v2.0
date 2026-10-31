@@ -1251,8 +1251,31 @@ img.brand-mark {
   object-fit: cover;
 }
 
-.media-tile:hover img {
+.media-video-tile {
+  cursor: pointer;
+}
+
+.media-video-tile:hover img,
+.media-video-tile:hover video {
   opacity: 0.85;
+}
+
+.media-play-badge {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.media-play-badge svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #fff;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+  background: rgba(15, 17, 21, 0.55);
+  border-radius: 9999px;
+  padding: 0.5rem;
 }
 
 .media-delete {
