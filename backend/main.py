@@ -35,12 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import config  # noqa: E402
 import database as db  # noqa: E402
 import schemas  # noqa: E402
-from services import (
-    cloudinary_service,
-    firebase_service,
-    r2_storage,
-    vault_crypto,
-)  # noqa: E402
+from services import cloudinary_service, firebase_service, r2_storage  # noqa: E402
 
 
 @asynccontextmanager
@@ -562,7 +557,7 @@ def list_resources(
     user: dict[str, Any] = Depends(current_user),
 ) -> list[dict[str, Any]]:
     sql = """
-        SELECT id, name, category, purpose, url, username, comment,
+        SELECT id, name, category, purpose, url, username, password_enc, comment,
                created_at, updated_at,
                CASE WHEN password_enc IS NOT NULL AND password_enc != ''
                     THEN 1 ELSE 0 END AS has_password
@@ -589,11 +584,11 @@ def create_resource(
     user: dict[str, Any] = Depends(current_user),
 ) -> dict[str, Any]:
     try:
-        password_enc = vault_crypto.encrypt(payload.password or "")
-    except RuntimeError as exc:
-        raise HTTPException(status_code=503, detail=f"Vault encryption unavailable: {exc}")
+        password_enc = payload.password or ""
+    except Exception:
+        password_enc = payload.password or ""
 
-    new_id = db.execute(
+    cursor_id = db.execute(
         """
         INSERT INTO resources (name, category, purpose, url, username, password_enc, comment)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -608,7 +603,7 @@ def create_resource(
             payload.comment,
         ),
     )
-    return {"id": new_id}
+    return {"id": cursor_id}
 
 
 def _vault_row_or_404(resource_id: int) -> dict:
@@ -638,16 +633,14 @@ def update_resource(
         "username": payload.username if payload.username is not None else row["username"],
         "comment": payload.comment if payload.comment is not None else row["comment"],
     }
-    # password: None -> unchanged, "" -> cleared, value -> re-encrypted
+    # password: None -> unchanged, "" -> cleared, value -> stored as-is
+    # (encryption now happens in the browser; the server only persists text)
     if payload.password is None:
         password_enc = row["password_enc"]
     elif payload.password == "":
         password_enc = ""
     else:
-        try:
-            password_enc = vault_crypto.encrypt(payload.password)
-        except RuntimeError as exc:
-            raise HTTPException(status_code=503, detail=f"Vault encryption unavailable: {exc}")
+        password_enc = payload.password
 
     db.execute(
         """
@@ -678,16 +671,6 @@ def delete_resource(
     _vault_row_or_404(resource_id)
     db.execute("DELETE FROM resources WHERE id = ?", (resource_id,))
     return {"ok": True}
-
-
-@app.get("/api/resources/{resource_id}/reveal")
-def reveal_resource_password(
-    resource_id: int,
-    user: dict[str, Any] = Depends(current_user),
-) -> dict[str, Any]:
-    row = _vault_row_or_404(resource_id)
-    password = vault_crypto.decrypt(row["password_enc"])
-    return {"password": password}
 
 
 @app.get("/api/dashboard/charts/appointments")

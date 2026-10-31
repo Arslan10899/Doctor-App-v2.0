@@ -9,9 +9,9 @@
   <link rel="icon" type="image/png" href="assets/app-icon-64.png?v=18" />
   <link rel="apple-touch-icon" href="assets/app-icon-256.png?v=18" />
 
-  <link rel="stylesheet" href="css/theme.css?v=41" />
-  <link rel="stylesheet" href="css/layout.css?v=41" />
-  <link rel="stylesheet" href="css/components.css?v=41" />
+  <link rel="stylesheet" href="css/theme.css?v=42" />
+  <link rel="stylesheet" href="css/layout.css?v=42" />
+  <link rel="stylesheet" href="css/components.css?v=42" />
 
   <script>
     (function () {
@@ -62,7 +62,7 @@
                 <div class="card-content text-sm" style="display:flex;gap:.6rem;align-items:flex-start;">
                   <span style="color:var(--warning);flex:none;margin-top:.1rem;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
                   <span>
-                    <b>Encrypted at rest – key lives outside git.</b> Passwords AES encrypt ho kar database mein jatay hain; decryption key <code>backend/vault_key.key</code> (git-ignored) mein rehti hai. PythonAnywhere pe pehli dafa <code>pa_update.sh</code> ke baad ye file khalb copy karna zaroori hai — warna purane passwords reveal nahin hongay (baqi fields normal miltay hain).
+                    <b>Encrypted in your browser.</b> Passwords AES-encrypt ho kar database mein jatay hain using a passphrase jo sirf aap ke browser (localStorage) mein rehti hai — server aur git repo kabhi plaintext nahi dekhte. Passphrase bhool gaye to purane passwords recover nahi honge (baqi fields safe). Change: browser console → <code>localStorage.removeItem('doctor_app_vault_pass')</code>.
                   </span>
                 </div>
               </div>
@@ -181,11 +181,11 @@
     </div>
   </div>
 
-  <script src="js/icons.js?v=41"></script>
-  <script src="js/utils.js?v=41"></script>
-  <script src="js/api.js?v=41"></script>
-  <script src="js/theme.js?v=41"></script>
-  <script src="js/layout.js?v=41"></script>
-  <script src="js/resources.js?v=41"></script>
+  <script src="js/icons.js?v=42"></script>
+  <script src="js/utils.js?v=42"></script>
+  <script src="js/api.js?v=42"></script>
+  <script src="js/theme.js?v=42"></script>
+  <script src="js/layout.js?v=42"></script>
+  <script src="js/resources.js?v=42"></script>
 </body>
 </html>

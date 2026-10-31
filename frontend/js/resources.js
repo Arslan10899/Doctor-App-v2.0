@@ -1,8 +1,62 @@
 /* ==========================================================================
    Doctor Application – Resources Vault page
    Private list of hosting / database / ad / streaming accounts.
-   Passwords are never sent by the list endpoint – revealed on demand.
+   Passwords are AES-GCM encrypted in the browser (Web Crypto) using a
+   passphrase stored in localStorage – the server and git repo never see
+   plaintext.
    ========================================================================== */
+
+const VaultCrypto = (() => {
+  const PASS_KEY = 'doctor_app_vault_pass';
+  const SALT = new TextEncoder().encode('doctor-app-vault-v1');
+
+  async function getPassphrase() {
+    let p = localStorage.getItem(PASS_KEY);
+    if (p) return p;
+    p = prompt('Vault passphrase set karein (yaad rakhein — bhoole to passwords recover nahi honge):');
+    if (!p) throw new Error('Passphrase required');
+    localStorage.setItem(PASS_KEY, p);
+    return p;
+  }
+
+  async function deriveKey(pass) {
+    const baseKey = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: SALT, iterations: 100000, hash: 'SHA-256' },
+      baseKey,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  async function encrypt(text) {
+    if (!text) return '';
+    const key = await deriveKey(await getPassphrase());
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(text));
+    const buf = new Uint8Array(iv.length + ct.byteLength);
+    buf.set(iv);
+    buf.set(new Uint8Array(ct), iv.length);
+    return btoa(String.fromCharCode(...buf));
+  }
+
+  async function decrypt(enc) {
+    if (!enc) return null;
+    try {
+      const key = await deriveKey(await getPassphrase());
+      const buf = Uint8Array.from(atob(enc), (c) => c.charCodeAt(0));
+      const iv = buf.slice(0, 12);
+      const ct = buf.slice(12);
+      const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+      return new TextDecoder().decode(pt);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  return { getPassphrase, encrypt, decrypt };
+})();
 
 const Resources = (() => {
   const state = {
@@ -156,7 +210,15 @@ const Resources = (() => {
       comment: document.getElementById('fComment').value.trim() || null,
     };
     const pwd = document.getElementById('fPassword').value;
-    if (pwd !== '') payload.password = pwd;
+    if (pwd !== '') {
+      try {
+        payload.password = await VaultCrypto.encrypt(pwd);
+      } catch (e) {
+        toast(e.message || 'Passphrase required', 'error');
+        saveBtn.disabled = false;
+        return;
+      }
+    }
 
     const saveBtn = document.getElementById('saveBtn');
     saveBtn.disabled = true;
@@ -178,26 +240,22 @@ const Resources = (() => {
   }
 
   async function revealPassword(id) {
+    const row = state.rows.find((r) => r.id === id);
+    if (!row || !row.password_enc) return;
+    const pwd = await VaultCrypto.decrypt(row.password_enc);
+    if (pwd == null) { toast('Decrypt nahi hua – passphrase galat ho sakti hai', 'error'); return; }
     const slot = document.querySelector(`#pwd-${id} [data-slot="mask"]`);
-    try {
-      const res = await Api.revealResourcePassword(id);
-      const pwd = res.password;
-      if (pwd == null) {
-        toast('Could not decrypt – vault key missing or wrong', 'error');
-        return;
-      }
-      if (slot) slot.textContent = pwd;
-      setTimeout(() => { if (slot) slot.textContent = '••••••••'; }, 12000);
-    } catch (err) {
-      toast(err.message, 'error');
-    }
+    if (slot) slot.textContent = pwd;
+    setTimeout(() => { if (slot) slot.textContent = '••••••••'; }, 12000);
   }
 
   async function copyPassword(id) {
+    const row = state.rows.find((r) => r.id === id);
+    if (!row || !row.password_enc) return;
+    const pwd = await VaultCrypto.decrypt(row.password_enc);
+    if (pwd == null) { toast('Decrypt nahi hua – passphrase galat ho sakti hai', 'error'); return; }
     try {
-      const res = await Api.revealResourcePassword(id);
-      if (res.password == null) { toast('Could not decrypt – vault key missing', 'error'); return; }
-      await copyText(res.password);
+      await copyText(pwd);
       toast('Password copied', 'success');
     } catch (err) {
       toast(err.message, 'error');
