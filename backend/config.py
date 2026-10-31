@@ -6,6 +6,7 @@ code base works for local development (SQLite) and for the future
 Firebase / Cloudinary production setup.
 """
 
+import json
 import os
 
 # ---------------------------------------------------------------------------
@@ -62,6 +63,33 @@ CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME", "")
 CLOUDINARY_API_KEY = os.environ.get("CLOUDINARY_API_KEY", "")
 CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET", "")
 CLOUDINARY_FOLDER = os.environ.get("CLOUDINARY_FOLDER", "doctor-application")
+
+# ---------------------------------------------------------------------------
+# Cloudflare R2 object storage (videos are stored here – free egress).
+# Env vars win, `backend/storage_settings.json` is the file-based fallback
+# (handy on PythonAnywhere where there is no env-var UI; file is git-ignored).
+# ---------------------------------------------------------------------------
+R2_ENABLED = os.environ.get("DOCTOR_APP_R2", "0") == "1"
+R2_ACCOUNT_ID = os.environ.get("DOCTOR_APP_R2_ACCOUNT_ID", "")
+R2_ACCESS_KEY_ID = os.environ.get("DOCTOR_APP_R2_KEY_ID", "")
+R2_SECRET_ACCESS_KEY = os.environ.get("DOCTOR_APP_R2_SECRET", "")
+R2_BUCKET = os.environ.get("DOCTOR_APP_R2_BUCKET", "drapp-media")
+R2_PUBLIC_BASE = os.environ.get("DOCTOR_APP_R2_PUBLIC_BASE", "")
+
+_storage_settings_file = os.path.join(BACKEND_DIR, "storage_settings.json")
+try:
+    if os.path.isfile(_storage_settings_file):
+        with open(_storage_settings_file, "r", encoding="utf-8") as _fh:
+            _r2 = (json.load(_fh) or {}).get("r2", {})
+        R2_ENABLED = bool(_r2.get("enabled", R2_ENABLED))
+        R2_ACCOUNT_ID = str(_r2.get("account_id", R2_ACCOUNT_ID) or R2_ACCOUNT_ID)
+        R2_ACCESS_KEY_ID = str(_r2.get("key_id", R2_ACCESS_KEY_ID) or R2_ACCESS_KEY_ID)
+        R2_SECRET_ACCESS_KEY = str(_r2.get("secret", R2_SECRET_ACCESS_KEY) or R2_SECRET_ACCESS_KEY)
+        R2_BUCKET = str(_r2.get("bucket", R2_BUCKET) or R2_BUCKET)
+        R2_PUBLIC_BASE = str(_r2.get("public_base", R2_PUBLIC_BASE) or R2_PUBLIC_BASE)
+        del _r2
+except (OSError, ValueError) as _exc:  # never let a bad settings file break boot
+    print(f"[config] storage_settings.json ignored: {_exc}")
 
 # Default avatar used when a doctor has no uploaded picture.
 DEFAULT_AVATAR = "/assets/avatar-placeholder.svg"

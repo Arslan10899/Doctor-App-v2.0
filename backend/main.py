@@ -877,10 +877,30 @@ def _doctor_media_row(media_id: int) -> dict[str, Any]:
 
 
 def _delete_media_file(url: str, provider: str) -> None:
-    """Remove the local file behind /uploads/... URLs (Cloudinary items are
-    left / destroyed only if a public_id is present – harmless either way)."""
-    if provider != "local" or not url or not url.startswith("/uploads/"):
+    """Remove the stored file behind a media row.
+
+    provider='r2'    -> delete the object from the Cloudflare R2 bucket
+    provider='local' -> unlink the file under backend/uploads
+    other (cloudinary/link) -> best-effort Cloudinary destroy, harmless.
+    """
+    if provider == "r2":
+        from services import r2_storage
+
+        key = r2_storage.key_from_public_url(url)
+        if key:
+            r2_storage.delete_object(key)
+        else:
+            # URL predates the current public_base (or base is unset):
+            # treat the path part after the host as the key.
+            path = (url or "").split("://", 1)[-1]
+            path = path.split("/", 1)
+            if len(path) == 2 and path[1]:
+                r2_storage.delete_object(path[1])
+        return
+    if provider != "local":
         cloudinary_service.delete_image(None, url)
+        return
+    if not url or not url.startswith("/uploads/"):
         return
     # /uploads/<folder>/<name> -> never allow escaping the upload directory
     parts = [p for p in url[len("/uploads/"):].split("/") if p]

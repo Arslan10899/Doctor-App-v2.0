@@ -18,6 +18,10 @@ serviceAccountKey.json
 *.env
 .env.local
 
+# R2 (Cloudflare) storage keys – created by hand on the PythonAnywhere
+# console (~/Doctor-App-v2.0/backend/storage_settings.json); never in git.
+backend/storage_settings.json
+
 # --- python ----------------------------------------------------------------
 __pycache__/
 *.py[cod]

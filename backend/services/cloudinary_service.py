@@ -26,6 +26,7 @@ import uuid
 from typing import Any, Optional
 
 import config
+from services import r2_storage
 
 logger = logging.getLogger("doctor_app.cloudinary")
 
@@ -90,10 +91,28 @@ def upload_media(
 ) -> dict[str, Any]:
     """
     Upload gallery media (image or video). Same payload shape as upload_image.
-    Video files fall back to local disk until Cloudinary video support is
-    plugged in via env (resource_type switches automatically there).
+
+    Videos prefer Cloudflare R2 (free storage + free egress – app users can
+    stream without cost) when R2 is configured; otherwise Cloudinary, then
+    local disk as the last fallback. Any later provider switch stays
+    row-level compatible: `provider` + `url` (+ `public_id` = object key).
     """
     resource_type = "video" if kind == "video" else "image"
+
+    if resource_type == "video" and r2_storage.enabled():
+        try:
+            extension = os.path.splitext(filename)[1].lower()
+            if extension not in VIDEO_EXTS:
+                extension = ".mp4"
+            key = f"{folder}/{uuid.uuid4().hex}{extension}"
+            return {
+                "url": r2_storage.upload_object(key, file_bytes),
+                "public_id": key,
+                "provider": "r2",
+                "secret": secrets.token_hex(8),
+            }
+        except Exception as exc:  # pragma: no cover
+            logger.error("R2 video upload failed, falling back to next provider: %s", exc)
 
     if _ensure_configured():
         try:
